@@ -32,10 +32,22 @@ Before the Arduino arrives, use either GUI:
 scripts\run_virtual_deck.bat
 ```
 
-or try the new modern React/TypeScript prototype:
+or try the new modern React/TypeScript prototype visibly:
 
 ```bat
 scripts\run_modern_ui.bat
+```
+
+For day-to-day use without keeping command windows visible, start it in the background:
+
+```bat
+scripts\run_modern_ui_background.bat
+```
+
+Stop the hidden background processes with:
+
+```bat
+scripts\stop_modern_ui.bat
 ```
 
 The Tkinter virtual controller remains the most complete V1 tool. It includes live Sonar mixer bars, profile-colored pages, polished Stream Deck-style button cards with no hover color changes and reduced click-time redraws, a top toolbar with Check / Install Updates, an Edit Mapping Mode where clicking a deck button selects it for editing, editable button display names with dedicated save/clear controls, an Action Type filter, GUI builders for custom app/website/hotkey buttons, a custom app `.exe` finder, profile/page create/duplicate/rename tools, config backup/restore, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).

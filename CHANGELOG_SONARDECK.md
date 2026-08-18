@@ -38,3 +38,4 @@
 - Added the first modern UI prototype: `bridge.web_api`, `ui/` Vite React/TypeScript app, `scripts/setup_modern_ui.bat`, `scripts/run_modern_ui.bat`, and `docs/modern-ui.md`.
 - Updated the software/config/firmware direction for a 10-button layout: `BTN_10_PRESS` is dedicated play/pause, `BTN_10_LONG` switches pages, and the modern UI supports hold-to-switch on the wide Button 10 card.
 - Added `docs/ten-button-layout.md` to capture the reference-image-inspired 3x3 grid + knob + wide play/pause button direction.
+- Added background launch/stop scripts for the modern UI: `scripts/run_modern_ui_background.bat`, `scripts/run_modern_ui_background.vbs`, `scripts/stop_modern_ui.bat`, plus `docs/background-and-tray.md`.
