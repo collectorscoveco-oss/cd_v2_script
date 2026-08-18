@@ -12,12 +12,21 @@ def main() -> None:
     if not client.api_base:
         print("SteelSeries GG API base was not discovered. Make sure GG/Sonar is running.")
         return
-    try:
-        settings = client.get_volume_settings()
-        print(json.dumps(settings, indent=2))
-    except Exception as exc:
-        print("Probe failed:", exc)
-        print("If this fails, paste this output back so we can adjust endpoints for your GG/Sonar version.")
+    print("Trying known Sonar/GG endpoints...")
+    results = client.probe()
+    for item in results:
+        status = "OK" if item.get("ok") else "FAIL"
+        print(f"[{status}] {item.get('base')}{item.get('endpoint')}")
+        if item.get("ok"):
+            data = item.get("data")
+            if isinstance(data, (dict, list)):
+                print(json.dumps(data, indent=2)[:4000])
+            else:
+                print(str(data)[:1000])
+        else:
+            print("  ", item.get("error"))
+    if not any(item.get("ok") for item in results):
+        print("No endpoints responded. Paste this full output back so we can adjust for your GG/Sonar version.")
 
 
 if __name__ == "__main__":

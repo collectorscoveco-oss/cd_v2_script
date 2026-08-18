@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import ssl
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -13,6 +14,15 @@ CORE_PROPS_CANDIDATES = [
     r"%PROGRAMDATA%\SteelSeries\SteelSeries Engine 3\coreProps.json",
     r"%PROGRAMDATA%\SteelSeries\GG\coreProps.json",
     r"%LOCALAPPDATA%\SteelSeries\GG\coreProps.json",
+]
+
+PROBE_ENDPOINTS = [
+    "/",
+    "/subApps",
+    "/sonar",
+    "/sonar/volumeSettings/classic",
+    "/sonar/volumeSettings",
+    "/sonar/volumeSettings/streamer",
 ]
 
 
@@ -30,6 +40,8 @@ class SonarClient:
         self.step = float(self.config.get("step", 0.03))
         self.channels = self.config.get("channels", {})
         self.api_base = self.config.get("api_base", "auto")
+        self.tls_verify = bool(self.config.get("tls_verify", False))
+        self._ssl_context = None if self.tls_verify else ssl._create_unverified_context()
         if self.api_base == "auto":
             self.api_base = self.discover_api_base()
 
@@ -46,24 +58,33 @@ class SonarClient:
             for key in ("ggEncryptedAddress", "address", "apiAddress", "ggAddress"):
                 value = data.get(key)
                 if value:
-                    value = self.normalize_api_base(str(value))
+                    value = self.normalize_api_base(str(value), encrypted=(key == "ggEncryptedAddress"))
                     LOG.info("Discovered SteelSeries API from %s key %s: %s", path, key, value)
                     return value
         LOG.warning("Could not auto-discover SteelSeries GG API base. Set actions.sonar.api_base in config.json after probing.")
         return None
 
     @staticmethod
-    def normalize_api_base(value: str | None) -> str | None:
+    def normalize_api_base(value: str | None, encrypted: bool = False) -> str | None:
         if not value:
             return None
         value = str(value).strip().rstrip("/")
         if not value:
             return None
         # SteelSeries coreProps.json commonly stores just "127.0.0.1:<port>".
-        # urllib needs a real URL scheme.
+        # urllib needs a real URL scheme. ggEncryptedAddress is HTTPS.
         if "://" not in value:
-            value = "http://" + value
+            value = ("https://" if encrypted else "http://") + value
         return value
+
+    def alternate_api_base(self) -> str | None:
+        if not self.api_base:
+            return None
+        if self.api_base.startswith("https://"):
+            return "http://" + self.api_base[len("https://"):]
+        if self.api_base.startswith("http://"):
+            return "https://" + self.api_base[len("http://"):]
+        return None
 
     def request(self, method: str, path: str, payload: dict | None = None):
         if not self.api_base:
@@ -77,7 +98,7 @@ class SonarClient:
         req = urllib.request.Request(url, data=body, method=method.upper())
         req.add_header("Content-Type", "application/json")
         try:
-            with urllib.request.urlopen(req, timeout=2) as resp:
+            with urllib.request.urlopen(req, timeout=2, context=self._ssl_context) as resp:
                 text = resp.read().decode("utf-8", errors="replace")
                 if not text:
                     return None
@@ -88,6 +109,36 @@ class SonarClient:
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"Sonar API HTTP {exc.code} for {path}: {detail}") from exc
+        except Exception as exc:
+            alternate = self.alternate_api_base()
+            # If HTTP vs HTTPS was guessed wrong, try the other scheme once.
+            if alternate:
+                old_base = self.api_base
+                self.api_base = alternate
+                try:
+                    return self.request(method, path, payload)
+                except Exception:
+                    self.api_base = old_base
+            raise
+
+    def probe(self) -> list[dict]:
+        results = []
+        original_base = self.api_base
+        bases = [b for b in [original_base, self.alternate_api_base()] if b]
+        seen = set()
+        for base in bases:
+            if base in seen:
+                continue
+            seen.add(base)
+            self.api_base = base
+            for endpoint in PROBE_ENDPOINTS:
+                try:
+                    data = self.request("GET", endpoint)
+                    results.append({"base": self.api_base, "endpoint": endpoint, "ok": True, "data": data})
+                except Exception as exc:
+                    results.append({"base": self.api_base, "endpoint": endpoint, "ok": False, "error": str(exc)})
+        self.api_base = original_base
+        return results
 
     def get_volume_settings(self):
         # Known common endpoint from community reverse-engineering; may need adjustment per GG version.
