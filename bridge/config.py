@@ -17,7 +17,36 @@ def ensure_config(path: Path | None = None) -> Path:
 def load_config(path: str | Path | None = None) -> dict:
     target = ensure_config(Path(path) if path else None)
     with target.open("r", encoding="utf-8") as f:
-        return json.load(f)
+        config = json.load(f)
+    changed = migrate_config(config)
+    if changed:
+        save_config(config, target)
+    return config
+
+
+def migrate_config(config: dict) -> bool:
+    """Apply safe additive config migrations for existing local configs."""
+    changed = False
+    profiles = config.get("profiles", {}).get("items", {})
+    for item in profiles.values():
+        events = item.setdefault("events", {})
+        labels = item.setdefault("labels", {})
+        if events.get("BTN_10_PRESS") != "media.play_pause":
+            events["BTN_10_PRESS"] = "media.play_pause"
+            changed = True
+        if events.get("BTN_10_LONG") != "profile.next":
+            events["BTN_10_LONG"] = "profile.next"
+            changed = True
+        if "BTN_08_LONG" in events:
+            events.pop("BTN_08_LONG", None)
+            changed = True
+        if labels.get("BTN_10_PRESS") != "Play/Pause":
+            labels["BTN_10_PRESS"] = "Play/Pause"
+            changed = True
+        if labels.get("BTN_10_LONG") != "Hold: Next Page":
+            labels["BTN_10_LONG"] = "Hold: Next Page"
+            changed = True
+    return changed
 
 
 def save_config(config: dict, path: str | Path | None = None) -> Path:

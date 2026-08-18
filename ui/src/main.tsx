@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, Gamepad2, RefreshCcw, Save, Settings, Sparkles, Volume2, Zap } from 'lucide-react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
@@ -19,6 +19,7 @@ type State = {
   profiles: Profile[]
   buttons: DeckButton[]
   encoder: { event: string; action?: string; label: string }[]
+  specials: { event: string; action?: string; label: string }[]
   actions: Action[]
   log: string[]
 }
@@ -48,6 +49,8 @@ function App() {
   const [labelDraft, setLabelDraft] = useState('')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
+  const longPressTimer = useRef<number | null>(null)
+  const longPressFired = useRef(false)
 
   async function refresh() {
     try {
@@ -89,6 +92,32 @@ function App() {
     } catch (err) {
       setError(String(err))
     }
+  }
+
+  function buttonDown(button: DeckButton) {
+    if (button.event !== 'BTN_10_PRESS') return
+    longPressFired.current = false
+    if (longPressTimer.current) window.clearTimeout(longPressTimer.current)
+    longPressTimer.current = window.setTimeout(() => {
+      longPressFired.current = true
+      fire('BTN_10_LONG')
+    }, 650)
+  }
+
+  function buttonUp(button: DeckButton) {
+    if (button.event !== 'BTN_10_PRESS') return
+    if (longPressTimer.current) {
+      window.clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }
+
+  function buttonClick(button: DeckButton) {
+    if (button.event === 'BTN_10_PRESS' && longPressFired.current) {
+      longPressFired.current = false
+      return
+    }
+    fire(button.event)
   }
 
   async function switchProfile(profile: string) {
@@ -148,14 +177,19 @@ function App() {
           <section className="deckPanel">
             <div className="sectionTitle">
               <h3>Virtual Deck</h3>
-              <span>Click to run. Select a card to edit its display name.</span>
+              <span>Click to run. Hold Button 10 to switch pages.</span>
             </div>
             <div className="deckGrid">
               {state?.buttons.map((button) => (
                 <button
                   key={button.event}
-                  className={`deckCard ${selected?.event === button.event ? 'picked' : ''}`}
-                  onClick={() => fire(button.event)}
+                  className={`deckCard ${button.event === 'BTN_10_PRESS' ? 'playCard' : ''} ${selected?.event === button.event ? 'picked' : ''}`}
+                  onMouseDown={() => buttonDown(button)}
+                  onMouseUp={() => buttonUp(button)}
+                  onMouseLeave={() => buttonUp(button)}
+                  onTouchStart={() => buttonDown(button)}
+                  onTouchEnd={() => buttonUp(button)}
+                  onClick={() => buttonClick(button)}
                   onContextMenu={(e) => { e.preventDefault(); setSelected(button) }}
                   style={{ '--cardColor': button.color } as React.CSSProperties}
                 >
@@ -167,7 +201,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <div className="hintBox">Tip: left-click fires the button. Right-click selects it for name editing without firing.</div>
+            <div className="hintBox">Tip: click Button 10 for Play/Pause. Hold Button 10 for Next Page. Right-click any card to edit its display name.</div>
           </section>
 
           <aside className="inspector">
@@ -215,7 +249,7 @@ function App() {
             {tab === 'hardware' && (
               <>
                 <div className="sectionTitle"><h3>Hardware Status</h3><span>Ready for the Arduino phase.</span></div>
-                <div className="statusCard"><Settings /> Arduino: not connected yet</div>
+                <div className="statusCard"><Settings /> Arduino: planned 10 buttons; Button 10 short=Play/Pause, hold=Next Page</div>
                 <div className="statusCard"><Activity /> Bridge API: http://127.0.0.1:8765</div>
               </>
             )}

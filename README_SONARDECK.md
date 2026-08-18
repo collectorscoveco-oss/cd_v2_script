@@ -6,8 +6,8 @@ This fork keeps the original ConsoleDeck V2 files and adds a cleaner no-screen S
 
 - Added `firmware/sonardeck_v1/sonardeck_v1.ino`
   - No OLED/display required.
-  - Emits clear serial events like `BTN_01_PRESS`, `BTN_08_LONG`, `ENC_01_CW`.
-  - Button 8 long press is reserved for profile/page switching.
+  - Emits clear serial events like `BTN_01_PRESS`, `BTN_10_PRESS`, `BTN_10_LONG`, `ENC_01_CW`.
+  - Button 10 short press is play/pause; Button 10 long press switches profile/page.
 - Added `bridge/`
   - Modular Python bridge.
   - JSON-configurable profiles/pages.
@@ -40,7 +40,7 @@ scripts\run_modern_ui.bat
 
 The Tkinter virtual controller remains the most complete V1 tool. It includes live Sonar mixer bars, profile-colored pages, polished Stream Deck-style button cards with no hover color changes and reduced click-time redraws, a top toolbar with Check / Install Updates, an Edit Mapping Mode where clicking a deck button selects it for editing, editable button display names with dedicated save/clear controls, an Action Type filter, GUI builders for custom app/website/hotkey buttons, a custom app `.exe` finder, profile/page create/duplicate/rename tools, config backup/restore, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).
 
-The modern UI prototype starts a Python local API plus a Vite/React frontend. It currently supports profile switching, polished virtual deck cards, firing mapped buttons, and right-click display-name editing. See `docs\modern-ui.md`.
+The modern UI prototype starts a Python local API plus a Vite/React frontend. It currently supports profile switching, polished virtual deck cards, firing mapped buttons, right-click display-name editing, and a wide Button 10 card where short click is Play/Pause and hold is Next Page. See `docs\modern-ui.md` and `docs\ten-button-layout.md`.
 
 When the Arduino arrives and is flashed/wired, run the hardware bridge:
 

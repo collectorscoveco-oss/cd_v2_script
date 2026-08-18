@@ -48,6 +48,8 @@ h3 { font-size: 18px; }
 .cardIcon { margin-top: 20px; color: var(--cardColor); }
 .deckCard strong { display: block; font-size: 20px; line-height: 1.05; letter-spacing: -.04em; margin-top: 12px; }
 .deckCard small { display: block; color: #64748b; margin-top: 10px; }
+.playCard { grid-column: span 2; min-height: 118px; background: linear-gradient(135deg, rgba(251,146,60,.18), rgba(15,23,42,.95)); }
+.playCard strong { font-size: 24px; }
 .hintBox, .empty, .statusCard, .readOnly { margin-top: 14px; border: 1px solid rgba(148,163,184,.12); background: rgba(2,6,23,.34); border-radius: 16px; padding: 12px; color: #94a3b8; }
 .formStack { display: grid; gap: 10px; }
 .formStack label { color: #94a3b8; font-size: 13px; }

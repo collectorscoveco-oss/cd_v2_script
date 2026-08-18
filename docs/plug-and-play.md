@@ -56,9 +56,10 @@ BTN_04_PRESS  Chat volume down
 BTN_05_PRESS  Media volume up
 BTN_06_PRESS  Media volume down
 BTN_07_PRESS  Mic mute toggle
-BTN_08_PRESS  Play / pause
-BTN_08_LONG   Switch profile/page
+BTN_08_PRESS  Normal mappable deck button
 BTN_09_PRESS  Windows mute
+BTN_10_PRESS  Play / pause
+BTN_10_LONG   Switch profile/page
 ENC_01_CW     Windows volume up
 ENC_01_CCW    Windows volume down
 ENC_01_PRESS  Windows mute

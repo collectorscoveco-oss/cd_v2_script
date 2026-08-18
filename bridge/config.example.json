@@ -64,11 +64,12 @@
           "BTN_06_PRESS": "sonar.media.volume_down",
           "BTN_07_PRESS": "sonar.mic.toggle_mute",
           "BTN_08_PRESS": "media.play_pause",
-          "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "windows.mute",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
-          "ENC_01_PRESS": "windows.mute"
+          "ENC_01_PRESS": "windows.mute",
+          "BTN_10_PRESS": "media.play_pause",
+          "BTN_10_LONG": "profile.next"
         },
         "labels": {
           "BTN_01_PRESS": "Game +",
@@ -79,7 +80,9 @@
           "BTN_06_PRESS": "Media -",
           "BTN_07_PRESS": "Mic Mute",
           "BTN_08_PRESS": "Play/Pause",
-          "BTN_09_PRESS": "Win Mute"
+          "BTN_09_PRESS": "Win Mute",
+          "BTN_10_PRESS": "Play/Pause",
+          "BTN_10_LONG": "Hold: Next Page"
         }
       },
       "apps": {
@@ -93,11 +96,12 @@
           "BTN_06_PRESS": "hotkey.discord_mute",
           "BTN_07_PRESS": "app.open.youtube",
           "BTN_08_PRESS": "app.launch.spotify",
-          "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.bambu_studio",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
-          "ENC_01_PRESS": "windows.mute"
+          "ENC_01_PRESS": "windows.mute",
+          "BTN_10_PRESS": "media.play_pause",
+          "BTN_10_LONG": "profile.next"
         },
         "labels": {
           "BTN_01_PRESS": "Discord",
@@ -108,7 +112,9 @@
           "BTN_06_PRESS": "Discord Mute",
           "BTN_07_PRESS": "YouTube",
           "BTN_08_PRESS": "Spotify",
-          "BTN_09_PRESS": "Bambu"
+          "BTN_09_PRESS": "Bambu",
+          "BTN_10_PRESS": "Play/Pause",
+          "BTN_10_LONG": "Hold: Next Page"
         }
       },
       "gaming": {
@@ -122,11 +128,12 @@
           "BTN_06_PRESS": "windows.mute",
           "BTN_07_PRESS": "sonar.mic.toggle_mute",
           "BTN_08_PRESS": "sonar.game.toggle_mute",
-          "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.discord",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
-          "ENC_01_PRESS": "windows.mute"
+          "ENC_01_PRESS": "windows.mute",
+          "BTN_10_PRESS": "media.play_pause",
+          "BTN_10_LONG": "profile.next"
         },
         "labels": {
           "BTN_01_PRESS": "Discord Mute",
@@ -137,7 +144,9 @@
           "BTN_06_PRESS": "Win Mute",
           "BTN_07_PRESS": "Mic Mute",
           "BTN_08_PRESS": "Game Mute",
-          "BTN_09_PRESS": "Discord"
+          "BTN_09_PRESS": "Discord",
+          "BTN_10_PRESS": "Play/Pause",
+          "BTN_10_LONG": "Hold: Next Page"
         }
       },
       "streaming": {
@@ -151,11 +160,12 @@
           "BTN_06_PRESS": "sonar.game.toggle_mute",
           "BTN_07_PRESS": "sonar.mic.toggle_mute",
           "BTN_08_PRESS": "app.open.youtube",
-          "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.obs",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
-          "ENC_01_PRESS": "windows.mute"
+          "ENC_01_PRESS": "windows.mute",
+          "BTN_10_PRESS": "media.play_pause",
+          "BTN_10_LONG": "profile.next"
         },
         "labels": {
           "BTN_01_PRESS": "OBS Scene 1",
@@ -166,7 +176,9 @@
           "BTN_06_PRESS": "Game Mute",
           "BTN_07_PRESS": "Mic Mute",
           "BTN_08_PRESS": "YouTube",
-          "BTN_09_PRESS": "OBS"
+          "BTN_09_PRESS": "OBS",
+          "BTN_10_PRESS": "Play/Pause",
+          "BTN_10_LONG": "Hold: Next Page"
         }
       },
       "music": {
@@ -180,11 +192,12 @@
           "BTN_06_PRESS": "windows.mute",
           "BTN_07_PRESS": "app.open.youtube",
           "BTN_08_PRESS": "sonar.media.toggle_mute",
-          "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.spotify",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
-          "ENC_01_PRESS": "windows.mute"
+          "ENC_01_PRESS": "windows.mute",
+          "BTN_10_PRESS": "media.play_pause",
+          "BTN_10_LONG": "profile.next"
         },
         "labels": {
           "BTN_01_PRESS": "Previous",
@@ -195,7 +208,9 @@
           "BTN_06_PRESS": "Win Mute",
           "BTN_07_PRESS": "YouTube",
           "BTN_08_PRESS": "Media Mute",
-          "BTN_09_PRESS": "Spotify"
+          "BTN_09_PRESS": "Spotify",
+          "BTN_10_PRESS": "Play/Pause",
+          "BTN_10_LONG": "Hold: Next Page"
         }
       },
       "desktop": {
@@ -209,11 +224,12 @@
           "BTN_06_PRESS": "media.next",
           "BTN_07_PRESS": "windows.mute",
           "BTN_08_PRESS": "app.launch.spotify",
-          "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.bambu_studio",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
-          "ENC_01_PRESS": "windows.mute"
+          "ENC_01_PRESS": "windows.mute",
+          "BTN_10_PRESS": "media.play_pause",
+          "BTN_10_LONG": "profile.next"
         },
         "labels": {
           "BTN_01_PRESS": "Discord",
@@ -224,7 +240,9 @@
           "BTN_06_PRESS": "Next",
           "BTN_07_PRESS": "Win Mute",
           "BTN_08_PRESS": "Spotify",
-          "BTN_09_PRESS": "Bambu"
+          "BTN_09_PRESS": "Bambu",
+          "BTN_10_PRESS": "Play/Pause",
+          "BTN_10_LONG": "Hold: Next Page"
         }
       }
     }

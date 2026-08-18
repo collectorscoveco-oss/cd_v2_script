@@ -19,9 +19,9 @@ from .main import handle_event, setup_logging
 from .profiles import ProfileManager
 from .sounds import notify_profile_switch
 
-BUTTON_EVENTS = [f"BTN_{idx:02d}_PRESS" for idx in range(1, 10)]
+BUTTON_EVENTS = [f"BTN_{idx:02d}_PRESS" for idx in range(1, 11)]
 ENCODER_EVENTS = ["ENC_01_CCW", "ENC_01_PRESS", "ENC_01_CW"]
-EDITABLE_EVENTS = BUTTON_EVENTS + ["BTN_08_LONG"] + ENCODER_EVENTS
+EDITABLE_EVENTS = BUTTON_EVENTS + ["BTN_10_LONG"] + ENCODER_EVENTS
 
 ACTION_LABELS = {
     "profile.next": "Switch Page",
@@ -231,7 +231,7 @@ class VirtualDeckApp:
             btn.grid(row=0, column=i, padx=6, pady=8, sticky="ew")
             self.encoder_buttons[event] = btn
             encoder_frame.columnconfigure(i, weight=1)
-        self.profile_switch_button = ttk.Button(encoder_frame, text="", style="Small.TButton", command=lambda: self.fire_event("BTN_08_LONG"))
+        self.profile_switch_button = ttk.Button(encoder_frame, text="", style="Small.TButton", command=lambda: self.fire_event("BTN_10_LONG"))
         self.profile_switch_button.grid(row=1, column=0, columnspan=3, padx=6, pady=(0, 8), sticky="ew")
 
         side_col = ttk.Frame(middle)
@@ -576,7 +576,8 @@ class VirtualDeckApp:
         for idx, event in enumerate(BUTTON_EVENTS, start=1):
             self.root.bind_all(f"<F{idx}>", lambda _e, ev=event: self.fire_event(ev))
             self.root.bind_all(f"<Control-Alt-Key-{idx}>", lambda _e, ev=event: self.fire_event(ev))
-        self.root.bind_all("<Control-Alt-Key-0>", lambda _e: self.fire_event("BTN_08_LONG"))
+        self.root.bind_all("<Control-Alt-Key-0>", lambda _e: self.fire_event("BTN_10_PRESS"))
+        self.root.bind_all("<Control-Alt-Key-minus>", lambda _e: self.fire_event("BTN_10_LONG"))
         self.root.bind_all("<Control-Alt-Right>", lambda _e: self.fire_event("ENC_01_CW"))
         self.root.bind_all("<Control-Alt-Left>", lambda _e: self.fire_event("ENC_01_CCW"))
 
@@ -605,7 +606,7 @@ class VirtualDeckApp:
             self.update_deck_card(event, idx, action)
         for event, btn in self.encoder_buttons.items():
             btn.configure(text=self.action_label(self.profiles.action_for_event(event)))
-        self.profile_switch_button.configure(text=f"Long Press B8: {self.action_label(self.profiles.action_for_event('BTN_08_LONG'))}")
+        self.profile_switch_button.configure(text=f"Hold B10: {self.action_label(self.profiles.action_for_event('BTN_10_LONG'))}")
         self.load_editor_action()
 
     def load_editor_action(self) -> None:
@@ -879,7 +880,7 @@ class VirtualDeckApp:
         while key in items:
             key = f"{base_key}_{counter}"
             counter += 1
-        items[key] = {"name": name, "events": {"BTN_08_LONG": "profile.next"}, "labels": {"BTN_08_LONG": "Switch Page"}}
+        items[key] = {"name": name, "events": {"BTN_10_PRESS": "media.play_pause", "BTN_10_LONG": "profile.next"}, "labels": {"BTN_10_PRESS": "Play/Pause", "BTN_10_LONG": "Hold: Next Page"}}
         save_config(self.config, self.config_path)
         self.refresh_profile_dropdowns()
         self.selected_profile_var.set(key)

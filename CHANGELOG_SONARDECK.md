@@ -33,6 +33,8 @@
 - Updated the virtual controller to refresh its Sonar status immediately after any action, plus a delayed second refresh for GG/Sonar API lag.
 - Added `scripts/reset_config_to_default.bat` and `docs/plug-and-play.md` so the Windows setup path is closer to plug-and-play.
 - Updated `scripts/setup_windows.bat` to create `bridge/config.json` automatically when missing.
-- Changed the default V1 `BTN_08_PRESS` mapping to media play/pause so the default config has no unimplemented output-rotation action; `BTN_08_LONG` remains profile/page switch.
+- Changed the default V1 page-switch model so `BTN_10_PRESS` is media play/pause and `BTN_10_LONG` is profile/page switch.
 - Added `docs/ui-tech-direction.md` to capture the planned move from raw Tkinter toward a more professional Tauri/React UI with the Python bridge kept for control logic.
 - Added the first modern UI prototype: `bridge.web_api`, `ui/` Vite React/TypeScript app, `scripts/setup_modern_ui.bat`, `scripts/run_modern_ui.bat`, and `docs/modern-ui.md`.
+- Updated the software/config/firmware direction for a 10-button layout: `BTN_10_PRESS` is dedicated play/pause, `BTN_10_LONG` switches pages, and the modern UI supports hold-to-switch on the wide Button 10 card.
+- Added `docs/ten-button-layout.md` to capture the reference-image-inspired 3x3 grid + knob + wide play/pause button direction.

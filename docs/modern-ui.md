@@ -32,7 +32,7 @@ That starts:
 - right-click a card to select it for display-name editing
 - save button display name back to `bridge/config.json`
 - pages/actions/hardware tabs
-- bridge status/log area
+- 10-button layout support: Button 10 is a wide Play/Pause control; hold Button 10 for Next Page (`BTN_10_LONG`)
 
 ## Next steps
 

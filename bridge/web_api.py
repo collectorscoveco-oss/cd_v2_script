@@ -13,8 +13,9 @@ from .config import load_config, save_config
 from .main import handle_event, setup_logging
 from .profiles import ProfileManager
 
-BUTTON_EVENTS = [f"BTN_{idx:02d}_PRESS" for idx in range(1, 10)]
-ENCODER_EVENTS = ["ENC_01_CCW", "ENC_01_PRESS", "ENC_01_CW", "BTN_08_LONG"]
+BUTTON_EVENTS = [f"BTN_{idx:02d}_PRESS" for idx in range(1, 11)]
+SPECIAL_EVENTS = ["BTN_10_LONG"]
+ENCODER_EVENTS = ["ENC_01_CCW", "ENC_01_PRESS", "ENC_01_CW"]
 
 CATEGORY_COLORS = {
     "Sonar": "#32d3ff",
@@ -162,11 +163,16 @@ class SonarDeckApiState:
         for event in ENCODER_EVENTS:
             action = events.get(event)
             encoder.append({"event": event, "action": action, "label": action_label(action)})
+        specials = []
+        for event in SPECIAL_EVENTS:
+            action = events.get(event)
+            specials.append({"event": event, "action": action, "label": labels.get(event) or action_label(action)})
         return {
             "profile": {"key": current_key, "name": self.profiles.current_name, "theme": THEMES.get(current_key, THEMES["desktop"])},
             "profiles": [{"key": key, "name": item.get("name", key)} for key, item in self.config["profiles"].get("items", {}).items()],
             "buttons": buttons,
             "encoder": encoder,
+            "specials": specials,
             "actions": available_actions(self.config),
             "log": self.log,
         }

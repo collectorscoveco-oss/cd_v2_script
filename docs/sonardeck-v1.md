@@ -9,13 +9,14 @@ This branch turns the free Console Deck V2 project into a no-screen SonarDeck pr
 - Arduino sends generic serial events only.
 - Windows bridge decides what each button/encoder event does.
 - `BTN_08_PRESS` can be a normal action.
-- `BTN_08_LONG` switches profile/page.
+- `BTN_10_PRESS` is the dedicated play/pause button.
+- `BTN_10_LONG` switches profile/page.
 - Profile switch sound is configurable in `bridge/config.json`.
 
 ## Firmware events
 
-- `BTN_01_PRESS` ... `BTN_09_PRESS`
-- `BTN_08_LONG`
+- `BTN_01_PRESS` ... `BTN_10_PRESS`
+- `BTN_10_LONG`
 - `ENC_01_CW`
 - `ENC_01_CCW`
 - `ENC_01_PRESS`
@@ -57,10 +58,10 @@ You can also simulate one event from Command Prompt:
 
 ```bat
 scripts\simulate_event.bat BTN_05_PRESS
-scripts\simulate_event.bat BTN_08_LONG
+scripts\simulate_event.bat BTN_10_LONG
 ```
 
-`BTN_05_PRESS` should raise Sonar media volume. `BTN_08_LONG` should switch profile/page and play the configured beep/sound.
+`BTN_05_PRESS` should raise Sonar media volume. `BTN_10_PRESS` should play/pause media. `BTN_10_LONG` should switch profile/page and play the configured beep/sound.
 
 Full plug-and-play notes: `docs\plug-and-play.md`.
 
