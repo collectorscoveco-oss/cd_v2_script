@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import queue
 import shutil
 import subprocess
@@ -533,28 +534,30 @@ class VirtualDeckApp:
         ttk.Entry(parent, textvariable=self.custom_app_name_var).grid(row=0, column=1, sticky="ew", padx=6, pady=4)
         ttk.Label(parent, text="App file").grid(row=1, column=0, sticky="w", padx=6, pady=4)
         ttk.Entry(parent, textvariable=self.custom_app_path_var).grid(row=1, column=1, sticky="ew", padx=6, pady=4)
-        ttk.Button(parent, text="Browse App...", command=self.browse_custom_app).grid(row=2, column=0, padx=6, pady=5, sticky="ew")
-        ttk.Button(parent, text="Add App", command=self.add_custom_app_action).grid(row=2, column=1, padx=6, pady=5, sticky="ew")
+        ttk.Button(parent, text="Browse for .exe...", command=self.browse_custom_app).grid(row=2, column=0, padx=6, pady=5, sticky="ew")
+        ttk.Button(parent, text="Find .exe by Name", command=self.find_custom_app).grid(row=2, column=1, padx=6, pady=5, sticky="ew")
+        ttk.Button(parent, text="Add App", command=self.add_custom_app_action).grid(row=3, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
+        ttk.Label(parent, text="Tip: type Discord, OBS, Spotify, Steam, etc. then Find .exe by Name.", style="Sub.TLabel", wraplength=330).grid(row=4, column=0, columnspan=2, sticky="ew", padx=6, pady=(0, 5))
 
-        ttk.Separator(parent).grid(row=3, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
-        ttk.Label(parent, text="Website name").grid(row=4, column=0, sticky="w", padx=6, pady=4)
-        ttk.Entry(parent, textvariable=self.custom_website_name_var).grid(row=4, column=1, sticky="ew", padx=6, pady=4)
-        ttk.Label(parent, text="URL").grid(row=5, column=0, sticky="w", padx=6, pady=4)
-        ttk.Entry(parent, textvariable=self.custom_website_url_var).grid(row=5, column=1, sticky="ew", padx=6, pady=4)
-        ttk.Button(parent, text="Add Website", command=self.add_custom_website_action).grid(row=6, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
+        ttk.Separator(parent).grid(row=5, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
+        ttk.Label(parent, text="Website name").grid(row=6, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_website_name_var).grid(row=6, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Label(parent, text="URL").grid(row=7, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_website_url_var).grid(row=7, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(parent, text="Add Website", command=self.add_custom_website_action).grid(row=8, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
 
-        ttk.Separator(parent).grid(row=7, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
-        ttk.Label(parent, text="Hotkey name").grid(row=8, column=0, sticky="w", padx=6, pady=4)
-        ttk.Entry(parent, textvariable=self.custom_hotkey_name_var).grid(row=8, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Separator(parent).grid(row=9, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
+        ttk.Label(parent, text="Hotkey name").grid(row=10, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_hotkey_name_var).grid(row=10, column=1, sticky="ew", padx=6, pady=4)
         mods = ttk.Frame(parent)
-        mods.grid(row=9, column=0, columnspan=2, sticky="ew", padx=6, pady=2)
+        mods.grid(row=11, column=0, columnspan=2, sticky="ew", padx=6, pady=2)
         ttk.Checkbutton(mods, text="Ctrl", variable=self.hotkey_ctrl_var).pack(side="left")
         ttk.Checkbutton(mods, text="Shift", variable=self.hotkey_shift_var).pack(side="left")
         ttk.Checkbutton(mods, text="Alt", variable=self.hotkey_alt_var).pack(side="left")
         ttk.Checkbutton(mods, text="Win", variable=self.hotkey_win_var).pack(side="left")
-        ttk.Label(parent, text="Key").grid(row=10, column=0, sticky="w", padx=6, pady=4)
-        ttk.Entry(parent, textvariable=self.custom_hotkey_key_var).grid(row=10, column=1, sticky="ew", padx=6, pady=4)
-        ttk.Button(parent, text="Add Hotkey", command=self.add_custom_hotkey_action).grid(row=11, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
+        ttk.Label(parent, text="Key").grid(row=12, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_hotkey_key_var).grid(row=12, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(parent, text="Add Hotkey", command=self.add_custom_hotkey_action).grid(row=13, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
         parent.columnconfigure(1, weight=1)
 
     def _build_profile_tools_panel(self, parent: ttk.LabelFrame) -> None:
@@ -652,14 +655,106 @@ class VirtualDeckApp:
 
     def browse_custom_app(self) -> None:
         path = filedialog.askopenfilename(
-            title="Choose app/executable",
-            filetypes=[("Applications", "*.exe *.bat *.cmd *.lnk"), ("All files", "*.*")],
+            title="Choose the app .exe, .lnk, .bat, or .cmd",
+            filetypes=[("Windows apps", "*.exe *.lnk *.bat *.cmd"), ("Executable files", "*.exe"), ("All files", "*.*")],
         )
         if not path:
             return
         self.custom_app_path_var.set(path)
         if not self.custom_app_name_var.get().strip():
             self.custom_app_name_var.set(Path(path).stem.replace(" ", "_"))
+
+    def find_custom_app(self) -> None:
+        query = self.custom_app_name_var.get().strip()
+        if not query:
+            messagebox.showwarning("SonarDeck", "Type an app name first, like Discord, OBS, Spotify, Steam, or SteelSeries.")
+            return
+        self._log(f"Searching common Windows app folders for: {query}")
+        threading.Thread(target=self._find_custom_app_worker, args=(query,), daemon=True).start()
+
+    def _app_search_roots(self) -> list[Path]:
+        candidates = [
+            os.environ.get("ProgramFiles"),
+            os.environ.get("ProgramFiles(x86)"),
+            os.environ.get("LOCALAPPDATA"),
+            os.environ.get("APPDATA"),
+            os.environ.get("ProgramData"),
+        ]
+        roots: list[Path] = []
+        for value in candidates:
+            if value:
+                path = Path(value)
+                if path.exists():
+                    roots.append(path)
+        for start_menu in (
+            Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs",
+            Path(os.environ.get("ProgramData", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs",
+        ):
+            if start_menu.exists():
+                roots.append(start_menu)
+        return roots
+
+    def _find_custom_app_worker(self, query: str) -> None:
+        query_lower = query.lower().replace(" ", "")
+        matches: list[Path] = []
+        seen: set[str] = set()
+        for root in self._app_search_roots():
+            try:
+                for path in root.rglob("*"):
+                    if path.suffix.lower() not in {".exe", ".lnk", ".bat", ".cmd"}:
+                        continue
+                    normalized = path.stem.lower().replace(" ", "")
+                    full_text = str(path).lower().replace(" ", "")
+                    if query_lower in normalized or query_lower in full_text:
+                        key = str(path).lower()
+                        if key not in seen:
+                            seen.add(key)
+                            matches.append(path)
+                            if len(matches) >= 30:
+                                raise StopIteration
+            except StopIteration:
+                break
+            except Exception:
+                continue
+        matches.sort(key=lambda p: (0 if p.suffix.lower() == ".exe" else 1, len(str(p))))
+        self.root.after(0, lambda: self._show_app_search_results(query, matches))
+
+    def _show_app_search_results(self, query: str, matches: list[Path]) -> None:
+        if not matches:
+            self._log(f"No installed app matches found for: {query}")
+            messagebox.showinfo(
+                "SonarDeck App Finder",
+                "I could not find a matching .exe automatically. Try Browse for .exe, or type a more specific name like obs64, Discord, Spotify, or SteelSeriesGG.",
+            )
+            return
+        if len(matches) == 1:
+            self._choose_app_search_result(matches[0])
+            return
+        chooser = tk.Toplevel(self.root)
+        chooser.title("Choose App Match")
+        chooser.geometry("760x360")
+        chooser.configure(bg="#141922")
+        ttk.Label(chooser, text=f"Found {len(matches)} matches for '{query}'. Choose the one to use:", style="Sub.TLabel").pack(anchor="w", padx=12, pady=(12, 6))
+        listbox = tk.Listbox(chooser, bg="#0d1117", fg="#d8dee9", selectbackground="#32d3ff", height=12)
+        listbox.pack(fill="both", expand=True, padx=12, pady=6)
+        for path in matches:
+            listbox.insert("end", str(path))
+        listbox.selection_set(0)
+
+        def choose_selected() -> None:
+            selection = listbox.curselection()
+            if selection:
+                self._choose_app_search_result(matches[selection[0]])
+            chooser.destroy()
+
+        ttk.Button(chooser, text="Use Selected App", command=choose_selected).pack(fill="x", padx=12, pady=(4, 12))
+        listbox.bind("<Double-Button-1>", lambda _e: choose_selected())
+
+    def _choose_app_search_result(self, path: Path) -> None:
+        self.custom_app_path_var.set(str(path))
+        if not self.custom_app_name_var.get().strip():
+            self.custom_app_name_var.set(path.stem.replace(" ", "_"))
+        self._log(f"Selected app executable: {path}")
 
     def add_custom_app_action(self) -> None:
         raw_name = self.custom_app_name_var.get().strip()

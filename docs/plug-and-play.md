@@ -29,6 +29,7 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 - editable button names and control mappings saved to `bridge\config.json`
 - an Action Type filter so the mapping list is not one giant dropdown
 - GUI builders for custom app, website, and hotkey buttons without editing JSON
+- a custom app `.exe` finder: type an app name, click Find `.exe` by Name, and choose the best Windows match
 - profile/page create, duplicate, and rename tools
 - config backup and restore
 - F1-F9 and Ctrl+Alt+1..9 shortcuts while the window is focused

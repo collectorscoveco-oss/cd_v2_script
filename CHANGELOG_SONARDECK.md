@@ -21,6 +21,7 @@
 - Updated the toolbar update flow so it can install available GitHub updates with `git pull --ff-only`, block safely on local project changes, and offer to restart the Virtual Controller.
 - Added an Action Type filter for cleaner Sonar/Windows/Media/App/Website/Hotkey/Profile mapping selection.
 - Added GUI builders for custom website buttons and custom hotkey buttons.
+- Improved the custom app builder with a clearer Browse for `.exe` button plus a Find `.exe` by Name helper that searches common Windows app folders and lets the user pick the correct match.
 - Added profile/page tools for creating, duplicating, renaming pages, plus config backup/restore.
 - Removed deck-card hover event bindings entirely to eliminate the remaining Tkinter graphical glitch.
 - Added editable button names/labels saved per profile/control.
