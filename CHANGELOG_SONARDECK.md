@@ -18,6 +18,10 @@
 - Reworked the virtual deck buttons into polished Stream Deck-style cards with action category colors and an Edit Mapping Mode where clicking a deck button selects it for editing.
 - Smoothed virtual deck card hover behavior so cards no longer flash/flicker when moving over nested text.
 - Added a top toolbar with Check for Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode.
+- Removed deck-card hover event bindings entirely to eliminate the remaining Tkinter graphical glitch.
+- Added editable button names/labels saved per profile/control.
+- Added a GUI app picker so custom apps can be selected and mapped without editing JSON.
+- Reduced duplicate default short-press profile-switch mappings; long-press Button 8 remains the dedicated page switch.
 - Added more default profiles: Gaming, Streaming, Music, and Desktop.
 - Expanded profile-switch audio modes: off, beep, profile-specific beeps, terminal bell, Windows system sound, WAV file, profile-specific WAV files, and Windows voice.
 - Updated the virtual controller so button/encoder labels refresh when the active profile/page changes.

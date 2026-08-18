@@ -23,10 +23,11 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 
 - live Sonar mixer bars for Game/Chat/Media/Mic
 - profile-colored pages
-- polished Stream Deck-style button cards with action category colors and stable/non-flashy hover behavior
+- polished Stream Deck-style button cards with action category colors and no hover color changes
 - a top toolbar with Check for Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode
 - Edit Mapping Mode: click a deck button to select it for editing instead of firing it
-- editable button/control mappings saved to `bridge\config.json`
+- editable button names and control mappings saved to `bridge\config.json`
+- a GUI app picker for adding custom app-launch actions without editing JSON
 - F1-F9 and Ctrl+Alt+1..9 shortcuts while the window is focused
 - profile-switch audio modes: `off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`
 - a Test Current sound button and WAV picker

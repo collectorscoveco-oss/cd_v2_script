@@ -69,6 +69,17 @@
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
+        },
+        "labels": {
+          "BTN_01_PRESS": "Game +",
+          "BTN_02_PRESS": "Game -",
+          "BTN_03_PRESS": "Chat +",
+          "BTN_04_PRESS": "Chat -",
+          "BTN_05_PRESS": "Media +",
+          "BTN_06_PRESS": "Media -",
+          "BTN_07_PRESS": "Mic Mute",
+          "BTN_08_PRESS": "Play/Pause",
+          "BTN_09_PRESS": "Win Mute"
         }
       },
       "apps": {
@@ -81,12 +92,23 @@
           "BTN_05_PRESS": "media.play_pause",
           "BTN_06_PRESS": "hotkey.discord_mute",
           "BTN_07_PRESS": "app.open.youtube",
-          "BTN_08_PRESS": "profile.next",
+          "BTN_08_PRESS": "app.launch.spotify",
           "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.bambu_studio",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
+        },
+        "labels": {
+          "BTN_01_PRESS": "Discord",
+          "BTN_02_PRESS": "SteelSeries",
+          "BTN_03_PRESS": "Prev Track",
+          "BTN_04_PRESS": "Next Track",
+          "BTN_05_PRESS": "Play/Pause",
+          "BTN_06_PRESS": "Discord Mute",
+          "BTN_07_PRESS": "YouTube",
+          "BTN_08_PRESS": "Spotify",
+          "BTN_09_PRESS": "Bambu"
         }
       },
       "gaming": {
@@ -99,12 +121,23 @@
           "BTN_05_PRESS": "media.play_pause",
           "BTN_06_PRESS": "windows.mute",
           "BTN_07_PRESS": "sonar.mic.toggle_mute",
-          "BTN_08_PRESS": "profile.next",
+          "BTN_08_PRESS": "sonar.game.toggle_mute",
           "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.discord",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
+        },
+        "labels": {
+          "BTN_01_PRESS": "Discord Mute",
+          "BTN_02_PRESS": "SteelSeries",
+          "BTN_03_PRESS": "Prev Track",
+          "BTN_04_PRESS": "Next Track",
+          "BTN_05_PRESS": "Play/Pause",
+          "BTN_06_PRESS": "Win Mute",
+          "BTN_07_PRESS": "Mic Mute",
+          "BTN_08_PRESS": "Game Mute",
+          "BTN_09_PRESS": "Discord"
         }
       },
       "streaming": {
@@ -117,12 +150,23 @@
           "BTN_05_PRESS": "sonar.media.toggle_mute",
           "BTN_06_PRESS": "sonar.game.toggle_mute",
           "BTN_07_PRESS": "sonar.mic.toggle_mute",
-          "BTN_08_PRESS": "profile.next",
+          "BTN_08_PRESS": "app.open.youtube",
           "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.obs",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
+        },
+        "labels": {
+          "BTN_01_PRESS": "OBS Scene 1",
+          "BTN_02_PRESS": "OBS Scene 2",
+          "BTN_03_PRESS": "OBS Record",
+          "BTN_04_PRESS": "OBS Stream",
+          "BTN_05_PRESS": "Music Mute",
+          "BTN_06_PRESS": "Game Mute",
+          "BTN_07_PRESS": "Mic Mute",
+          "BTN_08_PRESS": "YouTube",
+          "BTN_09_PRESS": "OBS"
         }
       },
       "music": {
@@ -135,12 +179,23 @@
           "BTN_05_PRESS": "sonar.media.volume_up",
           "BTN_06_PRESS": "windows.mute",
           "BTN_07_PRESS": "app.open.youtube",
-          "BTN_08_PRESS": "profile.next",
+          "BTN_08_PRESS": "sonar.media.toggle_mute",
           "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.spotify",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
+        },
+        "labels": {
+          "BTN_01_PRESS": "Previous",
+          "BTN_02_PRESS": "Play/Pause",
+          "BTN_03_PRESS": "Next",
+          "BTN_04_PRESS": "Media -",
+          "BTN_05_PRESS": "Media +",
+          "BTN_06_PRESS": "Win Mute",
+          "BTN_07_PRESS": "YouTube",
+          "BTN_08_PRESS": "Media Mute",
+          "BTN_09_PRESS": "Spotify"
         }
       },
       "desktop": {
@@ -153,12 +208,23 @@
           "BTN_05_PRESS": "media.play_pause",
           "BTN_06_PRESS": "media.next",
           "BTN_07_PRESS": "windows.mute",
-          "BTN_08_PRESS": "profile.next",
+          "BTN_08_PRESS": "app.launch.spotify",
           "BTN_08_LONG": "profile.next",
           "BTN_09_PRESS": "app.launch.bambu_studio",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
+        },
+        "labels": {
+          "BTN_01_PRESS": "Discord",
+          "BTN_02_PRESS": "SteelSeries",
+          "BTN_03_PRESS": "YouTube",
+          "BTN_04_PRESS": "Previous",
+          "BTN_05_PRESS": "Play/Pause",
+          "BTN_06_PRESS": "Next",
+          "BTN_07_PRESS": "Win Mute",
+          "BTN_08_PRESS": "Spotify",
+          "BTN_09_PRESS": "Bambu"
         }
       }
     }

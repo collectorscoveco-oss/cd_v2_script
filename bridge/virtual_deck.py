@@ -125,6 +125,9 @@ class VirtualDeckApp:
         self.selected_profile_var = tk.StringVar(value=self.profiles.current_key)
         self.selected_event_var = tk.StringVar(value="BTN_01_PRESS")
         self.selected_action_var = tk.StringVar(value="")
+        self.selected_label_var = tk.StringVar(value="")
+        self.custom_app_name_var = tk.StringVar(value="")
+        self.custom_app_path_var = tk.StringVar(value="")
         self.edit_mode_var = tk.BooleanVar(value=False)
         self.selected_card_event = "BTN_01_PRESS"
 
@@ -315,9 +318,8 @@ class VirtualDeckApp:
         widgets = {"outer": outer, "stripe": stripe, "body": body, "top": top, "number": number, "category": category, "label": label, "hint": hint}
         self.deck_buttons[event] = widgets
         for widget in widgets.values():
+            widget.configure(cursor="hand2")
             widget.bind("<Button-1>", lambda _e, ev=event: self.handle_deck_card_click(ev))
-            widget.bind("<Enter>", lambda _e, ev=event: self.set_deck_card_hover(ev, True))
-            widget.bind("<Leave>", lambda _e, ev=event: self.set_deck_card_hover(ev, False))
 
     def action_category(self, action: str | None) -> str:
         if not action:
@@ -361,9 +363,13 @@ class VirtualDeckApp:
             except tk.TclError:
                 pass
 
+    def button_label(self, profile: str, event: str, action: str | None) -> str:
+        custom = self.config.get("profiles", {}).get("items", {}).get(profile, {}).get("labels", {}).get(event, "")
+        return custom or self.action_label(action)
+
     def update_deck_card(self, event: str, index: int, action: str | None) -> None:
         widgets = self.deck_buttons[event]
-        label = self.action_label(action)
+        label = self.button_label(str(self.profiles.current_key), event, action)
         category = self.action_category(action)
         accent = CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"])
         selected = self.edit_mode_var.get() and event == self.selected_card_event
@@ -407,15 +413,30 @@ class VirtualDeckApp:
         event_combo.grid(row=1, column=1, sticky="ew", padx=8, pady=6)
         event_combo.bind("<<ComboboxSelected>>", lambda _e: self.load_editor_action())
 
-        ttk.Label(frame, text="Action").grid(row=2, column=0, sticky="w", padx=8, pady=6)
-        self.action_combo = ttk.Combobox(frame, values=available_actions(self.config), textvariable=self.selected_action_var)
-        self.action_combo.grid(row=2, column=1, sticky="ew", padx=8, pady=6)
+        ttk.Label(frame, text="Button Name").grid(row=2, column=0, sticky="w", padx=8, pady=6)
+        ttk.Entry(frame, textvariable=self.selected_label_var).grid(row=2, column=1, sticky="ew", padx=8, pady=6)
 
-        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=3, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
-        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=4, column=0, padx=8, pady=6, sticky="ew")
-        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=4, column=1, padx=8, pady=6, sticky="ew")
-        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=5, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
-        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. F1-F9 still trigger buttons while focused.", style="Sub.TLabel", wraplength=360).grid(row=6, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
+        ttk.Label(frame, text="Action").grid(row=3, column=0, sticky="w", padx=8, pady=6)
+        self.action_combo = ttk.Combobox(frame, values=available_actions(self.config), textvariable=self.selected_action_var)
+        self.action_combo.grid(row=3, column=1, sticky="ew", padx=8, pady=6)
+        self.update_action_choices()
+
+        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=4, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
+        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=5, column=0, padx=8, pady=6, sticky="ew")
+        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=5, column=1, padx=8, pady=6, sticky="ew")
+
+        app_box = ttk.LabelFrame(frame, text="Add your own app")
+        app_box.grid(row=6, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
+        ttk.Label(app_box, text="Name").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(app_box, textvariable=self.custom_app_name_var).grid(row=0, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Label(app_box, text="File").grid(row=1, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(app_box, textvariable=self.custom_app_path_var).grid(row=1, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(app_box, text="Browse App...", command=self.browse_custom_app).grid(row=2, column=0, padx=6, pady=6, sticky="ew")
+        ttk.Button(app_box, text="Add App Action", command=self.add_custom_app_action).grid(row=2, column=1, padx=6, pady=6, sticky="ew")
+        app_box.columnconfigure(1, weight=1)
+
+        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=7, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
+        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. Button Name controls the text shown on the card.", style="Sub.TLabel", wraplength=360).grid(row=8, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
         frame.columnconfigure(1, weight=1)
         self.load_editor_action()
 
@@ -458,8 +479,11 @@ class VirtualDeckApp:
     def load_editor_action(self) -> None:
         profile = self.selected_profile_var.get()
         event = self.selected_event_var.get()
-        action = self.config["profiles"]["items"].get(profile, {}).get("events", {}).get(event, "")
+        item = self.config["profiles"]["items"].get(profile, {})
+        action = item.get("events", {}).get(event, "")
+        label = item.get("labels", {}).get(event, "")
         self.selected_action_var.set(action)
+        self.selected_label_var.set(label)
 
     def save_mapping(self) -> None:
         profile = self.selected_profile_var.get()
@@ -468,11 +492,57 @@ class VirtualDeckApp:
         if not profile or not event or not action:
             messagebox.showwarning("SonarDeck", "Choose a profile, control, and action first.")
             return
-        self.config["profiles"]["items"][profile].setdefault("events", {})[event] = action
+        item = self.config["profiles"]["items"][profile]
+        item.setdefault("events", {})[event] = action
+        label = self.selected_label_var.get().strip()
+        labels = item.setdefault("labels", {})
+        if label:
+            labels[event] = label
+        else:
+            labels.pop(event, None)
         self.profiles.items[profile]["events"][event] = action
         save_config(self.config, self.config_path)
+        self.update_action_choices()
         self.update_profile_ui()
-        self._log(f"Saved mapping: {profile} {event} -> {action}")
+        self._log(f"Saved mapping: {profile} {event} -> {action} label={label or '(auto)'}")
+
+    def update_action_choices(self) -> None:
+        values = available_actions(self.config)
+        if hasattr(self, "action_combo"):
+            self.action_combo.configure(values=values)
+
+    def browse_custom_app(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Choose app/executable",
+            filetypes=[("Applications", "*.exe *.bat *.cmd *.lnk"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        self.custom_app_path_var.set(path)
+        if not self.custom_app_name_var.get().strip():
+            self.custom_app_name_var.set(Path(path).stem.replace(" ", "_"))
+
+    def add_custom_app_action(self) -> None:
+        raw_name = self.custom_app_name_var.get().strip()
+        path = self.custom_app_path_var.get().strip()
+        if not raw_name or not path:
+            messagebox.showwarning("SonarDeck", "Pick an app file and give it a short name first.")
+            return
+        key = "".join(ch.lower() if ch.isalnum() else "_" for ch in raw_name).strip("_")
+        while "__" in key:
+            key = key.replace("__", "_")
+        if not key:
+            messagebox.showwarning("SonarDeck", "Use at least one letter or number in the app name.")
+            return
+        self.config.setdefault("actions", {}).setdefault("app", {}).setdefault("launch", {})[key] = path
+        action = f"app.launch.{key}"
+        ACTION_LABELS[action] = "Open " + raw_name.replace("_", " ").title()
+        self.selected_action_var.set(action)
+        if not self.selected_label_var.get().strip():
+            self.selected_label_var.set(raw_name.replace("_", " ").title())
+        save_config(self.config, self.config_path)
+        self.update_action_choices()
+        self._log(f"Added app action: {action} -> {path}")
 
     def test_selected_mapping(self) -> None:
         profile = self.selected_profile_var.get()
