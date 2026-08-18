@@ -1,0 +1,85 @@
+{
+  "serial": {
+    "port": "auto",
+    "baudrate": 9600,
+    "reconnect_seconds": 2
+  },
+  "profiles": {
+    "default": "sonar",
+    "switch_sound": {
+      "enabled": true,
+      "mode": "beep",
+      "beep_frequency": 880,
+      "beep_duration_ms": 90,
+      "file": ""
+    },
+    "items": {
+      "sonar": {
+        "name": "Sonar",
+        "events": {
+          "BTN_01_PRESS": "sonar.game.volume_up",
+          "BTN_02_PRESS": "sonar.game.volume_down",
+          "BTN_03_PRESS": "sonar.chat.volume_up",
+          "BTN_04_PRESS": "sonar.chat.volume_down",
+          "BTN_05_PRESS": "sonar.media.volume_up",
+          "BTN_06_PRESS": "sonar.media.volume_down",
+          "BTN_07_PRESS": "sonar.mic.toggle_mute",
+          "BTN_08_PRESS": "sonar.output.rotate",
+          "BTN_08_LONG": "profile.next",
+          "BTN_09_PRESS": "media.play_pause",
+          "ENC_01_CW": "windows.volume_up",
+          "ENC_01_CCW": "windows.volume_down",
+          "ENC_01_PRESS": "windows.mute"
+        }
+      },
+      "apps": {
+        "name": "Apps",
+        "events": {
+          "BTN_01_PRESS": "app.launch.discord",
+          "BTN_02_PRESS": "app.launch.steelseries_gg",
+          "BTN_03_PRESS": "media.previous",
+          "BTN_04_PRESS": "media.next",
+          "BTN_05_PRESS": "media.play_pause",
+          "BTN_06_PRESS": "hotkey.discord_mute",
+          "BTN_07_PRESS": "app.open.youtube",
+          "BTN_08_PRESS": "profile.next",
+          "BTN_08_LONG": "profile.next",
+          "BTN_09_PRESS": "app.launch.bambu_studio",
+          "ENC_01_CW": "windows.volume_up",
+          "ENC_01_CCW": "windows.volume_down",
+          "ENC_01_PRESS": "windows.mute"
+        }
+      }
+    }
+  },
+  "actions": {
+    "sonar": {
+      "step": 0.03,
+      "api_base": "auto",
+      "channels": {
+        "game": "game",
+        "chat": "chatRender",
+        "media": "media",
+        "aux": "aux",
+        "mic": "chatCapture"
+      }
+    },
+    "app": {
+      "launch": {
+        "discord": "C:/Users/%USERNAME%/AppData/Local/Discord/Update.exe --processStart Discord.exe",
+        "steelseries_gg": "C:/Program Files/SteelSeries/GG/SteelSeriesGG.exe",
+        "bambu_studio": "C:/Program Files/Bambu Studio/bambu-studio.exe"
+      },
+      "open": {
+        "youtube": "https://youtube.com"
+      }
+    },
+    "hotkey": {
+      "discord_mute": ["ctrl", "shift", "m"]
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/sonardeck.log"
+  }
+}
