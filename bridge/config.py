@@ -27,10 +27,22 @@ def load_config(path: str | Path | None = None) -> dict:
 def migrate_config(config: dict) -> bool:
     """Apply safe additive config migrations for existing local configs."""
     changed = False
+    actions = config.setdefault("actions", {})
+    app_actions = actions.setdefault("app", {})
+    open_actions = app_actions.setdefault("open", {})
+    if open_actions.get("spotify") != "spotify:":
+        open_actions["spotify"] = "spotify:"
+        changed = True
+
     profiles = config.get("profiles", {}).get("items", {})
     for item in profiles.values():
         events = item.setdefault("events", {})
         labels = item.setdefault("labels", {})
+        for event, action in list(events.items()):
+            if action == "app.launch.spotify":
+                events[event] = "app.open.spotify"
+                changed = True
+
         if events.get("BTN_10_PRESS") != "media.play_pause":
             events["BTN_10_PRESS"] = "media.play_pause"
             changed = True

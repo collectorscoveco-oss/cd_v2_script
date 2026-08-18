@@ -69,7 +69,8 @@ ACTION_LABELS = {
     "app.launch.steelseries_gg": "Open GG",
     "app.launch.bambu_studio": "Open Bambu",
     "app.launch.obs": "Open OBS",
-    "app.launch.spotify": "Open Spotify",
+    "app.launch.spotify": "Open Spotify EXE",
+    "app.open.spotify": "Open Spotify",
     "app.open.youtube": "Open YouTube",
 }
 
@@ -207,6 +208,26 @@ class SonarDeckApiState:
             self.append_log(f"Saved display name: {profile} {event} -> {label or '(auto)'}")
             return self.snapshot()
 
+    def save_mapping(self, profile: str, event: str, action: str, label: str | None = None) -> dict:
+        with self.lock:
+            item = self.config["profiles"]["items"].setdefault(profile, {})
+            events = item.setdefault("events", {})
+            labels = item.setdefault("labels", {})
+            if action.strip():
+                events[event] = action.strip()
+            else:
+                events.pop(event, None)
+            if label is not None:
+                if label.strip():
+                    labels[event] = label.strip()
+                else:
+                    labels.pop(event, None)
+            save_config(self.config, self.config_path)
+            self.reload()
+            self.profiles.current_key = profile
+            self.append_log(f"Saved mapping: {profile} {event} -> {action or '(unmapped)'}")
+            return self.snapshot()
+
 
 class SonarDeckRequestHandler(BaseHTTPRequestHandler):
     server_version = "SonarDeckModernApi/0.1"
@@ -249,6 +270,13 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                 state = self.server.state.set_profile(str(payload.get("profile", "")))
             elif parsed.path == "/api/label":
                 state = self.server.state.save_label(str(payload.get("profile", "")), str(payload.get("event", "")), str(payload.get("label", "")))
+            elif parsed.path == "/api/mapping":
+                state = self.server.state.save_mapping(
+                    str(payload.get("profile", "")),
+                    str(payload.get("event", "")),
+                    str(payload.get("action", "")),
+                    payload.get("label"),
+                )
             else:
                 self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
                 return

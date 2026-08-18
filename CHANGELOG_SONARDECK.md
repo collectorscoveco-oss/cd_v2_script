@@ -39,3 +39,5 @@
 - Updated the software/config/firmware direction for a 10-button layout: `BTN_10_PRESS` is dedicated play/pause, `BTN_10_LONG` switches pages, and the modern UI supports hold-to-switch on the wide Button 10 card.
 - Added `docs/ten-button-layout.md` to capture the reference-image-inspired 3x3 grid + knob + wide play/pause button direction.
 - Added background launch/stop scripts for the modern UI: `scripts/run_modern_ui_background.bat`, `scripts/run_modern_ui_background.vbs`, `scripts/stop_modern_ui.bat`, plus `docs/background-and-tray.md`.
+- Added manual button remapping to the modern UI Mapping tab and a `/api/mapping` endpoint so broken/misassigned buttons can be fixed from the GUI.
+- Changed Spotify defaults/migration to use the `spotify:` protocol action (`app.open.spotify`) instead of relying on `spotify.exe` being on PATH.

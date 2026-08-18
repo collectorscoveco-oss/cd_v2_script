@@ -47,6 +47,7 @@ function App() {
   const [state, setState] = useState<State | null>(null)
   const [selected, setSelected] = useState<DeckButton | null>(null)
   const [labelDraft, setLabelDraft] = useState('')
+  const [actionDraft, setActionDraft] = useState('')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
   const longPressTimer = useRef<number | null>(null)
@@ -72,7 +73,8 @@ function App() {
 
   useEffect(() => {
     setLabelDraft(selected?.label ?? '')
-  }, [selected?.event])
+    setActionDraft(selected?.action ?? '')
+  }, [selected?.event, selected?.action])
 
   const accent = state?.profile.theme.accent ?? '#32d3ff'
   const actionGroups = useMemo(() => {
@@ -131,6 +133,31 @@ function App() {
     const next = await api<State>('/label', {
       method: 'POST',
       body: JSON.stringify({ profile: state.profile.key, event: selected.event, label: labelDraft }),
+    })
+    setState(next)
+    setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+  }
+
+  async function saveMapping() {
+    if (!state || !selected) return
+    const next = await api<State>('/mapping', {
+      method: 'POST',
+      body: JSON.stringify({
+        profile: state.profile.key,
+        event: selected.event,
+        action: actionDraft,
+        label: labelDraft,
+      }),
+    })
+    setState(next)
+    setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+  }
+
+  async function clearMapping() {
+    if (!state || !selected) return
+    const next = await api<State>('/mapping', {
+      method: 'POST',
+      body: JSON.stringify({ profile: state.profile.key, event: selected.event, action: '', label: '' }),
     })
     setState(next)
     setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
@@ -201,31 +228,39 @@ function App() {
                 </button>
               ))}
             </div>
-            <div className="hintBox">Tip: click Button 10 for Play/Pause. Hold Button 10 for Next Page. Right-click any card to edit its display name.</div>
+            <div className="hintBox">Tip: click Button 10 for Play/Pause. Hold Button 10 for Next Page. Right-click any card to manually remap it.</div>
           </section>
 
           <aside className="inspector">
             {tab === 'mapping' && (
               <>
-                <div className="sectionTitle"><h3>Button Display Name</h3><span>Change the label shown on the deck.</span></div>
+                <div className="sectionTitle"><h3>Manual Button Remap</h3><span>Pick a deck button, choose the action, and save.</span></div>
                 {selected ? (
                   <div className="formStack">
                     <label>Selected control</label>
                     <div className="readOnly">{selected.event}</div>
+                    <label>Button action</label>
+                    <select value={actionDraft} onChange={(e) => setActionDraft(e.target.value)}>
+                      <option value="">Unmapped / Do nothing</option>
+                      {state?.actions.map((action) => (
+                        <option key={action.id} value={action.id}>{action.category} — {action.label} ({action.id})</option>
+                      ))}
+                    </select>
                     <label>Display name</label>
-                    <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} />
-                    <button className="primary" onClick={saveLabel}><Save size={16} /> Save Name</button>
-                    <button className="ghost" onClick={() => setLabelDraft('')}>Clear Draft</button>
+                    <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} placeholder="Example: Spotify" />
+                    <button className="primary" onClick={saveMapping}><Save size={16} /> Save Action + Name</button>
+                    <button className="ghost" onClick={saveLabel}>Save Name Only</button>
+                    <button className="ghost" onClick={clearMapping}>Clear Button Mapping</button>
                   </div>
                 ) : (
-                  <div className="empty">Right-click a deck button to select it for editing.</div>
+                  <div className="empty">Right-click a deck button to select it for remapping. Button 10 can also be remapped here.</div>
                 )}
               </>
             )}
 
             {tab === 'actions' && (
               <>
-                <div className="sectionTitle"><h3>Available Actions</h3><span>Read-only in this prototype.</span></div>
+                <div className="sectionTitle"><h3>Available Actions</h3><span>Use these in Mapping to fix buttons manually.</span></div>
                 <div className="actionList">
                   {Object.entries(actionGroups).map(([group, actions]) => (
                     <details key={group} open>

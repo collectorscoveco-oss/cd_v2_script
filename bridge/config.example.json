@@ -95,7 +95,7 @@
           "BTN_05_PRESS": "media.play_pause",
           "BTN_06_PRESS": "hotkey.discord_mute",
           "BTN_07_PRESS": "app.open.youtube",
-          "BTN_08_PRESS": "app.launch.spotify",
+          "BTN_08_PRESS": "app.open.spotify",
           "BTN_09_PRESS": "app.launch.bambu_studio",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
@@ -192,7 +192,7 @@
           "BTN_06_PRESS": "windows.mute",
           "BTN_07_PRESS": "app.open.youtube",
           "BTN_08_PRESS": "sonar.media.toggle_mute",
-          "BTN_09_PRESS": "app.launch.spotify",
+          "BTN_09_PRESS": "app.open.spotify",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute",
@@ -223,7 +223,7 @@
           "BTN_05_PRESS": "media.play_pause",
           "BTN_06_PRESS": "media.next",
           "BTN_07_PRESS": "windows.mute",
-          "BTN_08_PRESS": "app.launch.spotify",
+          "BTN_08_PRESS": "app.open.spotify",
           "BTN_09_PRESS": "app.launch.bambu_studio",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
@@ -268,7 +268,8 @@
         "spotify": "spotify.exe"
       },
       "open": {
-        "youtube": "https://youtube.com"
+        "youtube": "https://youtube.com",
+        "spotify": "spotify:"
       }
     },
     "hotkey": {

@@ -53,8 +53,9 @@ h3 { font-size: 18px; }
 .hintBox, .empty, .statusCard, .readOnly { margin-top: 14px; border: 1px solid rgba(148,163,184,.12); background: rgba(2,6,23,.34); border-radius: 16px; padding: 12px; color: #94a3b8; }
 .formStack { display: grid; gap: 10px; }
 .formStack label { color: #94a3b8; font-size: 13px; }
-input { width: 100%; border: 1px solid rgba(148,163,184,.18); background: rgba(2,6,23,.72); color: white; border-radius: 14px; padding: 12px; outline: none; }
-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+input, select { width: 100%; border: 1px solid rgba(148,163,184,.18); background: rgba(2,6,23,.72); color: white; border-radius: 14px; padding: 12px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+select option { background: #0f172a; color: #e2e8f0; }
 .primary { border: 0; display: flex; align-items: center; justify-content: center; gap: 8px; color: #020617; font-weight: 800; background: linear-gradient(135deg, var(--accent), #a78bfa); border-radius: 14px; padding: 12px; }
 .actionList { display: grid; gap: 12px; max-height: 560px; overflow: auto; padding-right: 4px; }
 details { border: 1px solid rgba(148,163,184,.12); border-radius: 16px; padding: 10px; background: rgba(2,6,23,.22); }

@@ -33,6 +33,8 @@ That starts:
 - save button display name back to `bridge/config.json`
 - pages/actions/hardware tabs
 - 10-button layout support: Button 10 is a wide Play/Pause control; hold Button 10 for Next Page (`BTN_10_LONG`)
+- Manual remapping in the Mapping tab: right-click a card, choose an action from the dropdown, then Save Action + Name
+- Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps
 
