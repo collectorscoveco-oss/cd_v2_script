@@ -18,3 +18,12 @@ def load_config(path: str | Path | None = None) -> dict:
     target = ensure_config(Path(path) if path else None)
     with target.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def save_config(config: dict, path: str | Path | None = None) -> Path:
+    target = Path(path) if path else USER_CONFIG
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
+        f.write("\n")
+    return target

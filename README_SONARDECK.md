@@ -32,6 +32,8 @@ Before the Arduino arrives, use the GUI virtual controller:
 scripts\run_virtual_deck.bat
 ```
 
+The virtual controller now includes live Sonar mixer bars, profile-colored pages, editable button mappings, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).
+
 When the Arduino arrives and is flashed/wired, run the hardware bridge:
 
 ```bat

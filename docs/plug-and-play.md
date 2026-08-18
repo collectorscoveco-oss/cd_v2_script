@@ -19,7 +19,14 @@ scripts\setup_windows.bat
 scripts\run_virtual_deck.bat
 ```
 
-The virtual controller is the GUI test deck. It lets you click the same mapped events the Arduino will send later.
+The virtual controller is the GUI test deck. It lets you click the same mapped events the Arduino will send later. It also includes:
+
+- live Sonar mixer bars for Game/Chat/Media/Mic
+- profile-colored pages
+- editable button/control mappings saved to `bridge\config.json`
+- F1-F9 and Ctrl+Alt+1..9 shortcuts while the window is focused
+- profile-switch audio modes: `off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`
+- a Test Current sound button and WAV picker
 
 ## If your config is old
 

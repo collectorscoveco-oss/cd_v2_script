@@ -14,6 +14,9 @@
 - Added Windows setup/run scripts and V1 docs.
 - Added `scripts/simulate_event.bat` for testing mapped actions without Arduino hardware.
 - Added `scripts/run_virtual_deck.bat` and `bridge.virtual_deck`, a GUI virtual controller for testing the final button/profile mappings before Arduino hardware arrives.
+- Expanded the virtual controller with live Sonar mixer bars, profile-colored pages, keyboard shortcuts, a button/profile editor, and profile-switch sound controls/test buttons.
+- Added more default profiles: Gaming, Streaming, Music, and Desktop.
+- Expanded profile-switch audio modes: off, beep, profile-specific beeps, terminal bell, Windows system sound, WAV file, profile-specific WAV files, and Windows voice.
 - Updated the virtual controller so button/encoder labels refresh when the active profile/page changes.
 - Updated the virtual controller to refresh its Sonar status immediately after any action, plus a delayed second refresh for GG/Sonar API lag.
 - Added `scripts/reset_config_to_default.bat` and `docs/plug-and-play.md` so the Windows setup path is closer to plug-and-play.
