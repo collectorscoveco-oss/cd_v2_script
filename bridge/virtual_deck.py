@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
 import queue
+import shutil
 import subprocess
 import sys
 import threading
@@ -76,6 +78,8 @@ CATEGORY_COLORS = {
 }
 
 SOUND_MODES = ["off", "beep", "profile_beeps", "terminal_bell", "system", "file", "profile_files", "voice"]
+ACTION_TYPES = ["All", "Sonar", "Windows", "Media", "App", "Hotkey", "Website", "Profile"]
+MODIFIER_KEYS = ["ctrl", "shift", "alt", "win"]
 
 
 def available_actions(config: dict) -> list[str]:
@@ -106,8 +110,8 @@ class VirtualDeckApp:
         self.root = root
         self.config_path = config_path
         self.root.title("SonarDeck Virtual Controller")
-        self.root.geometry("980x820")
-        self.root.minsize(820, 720)
+        self.root.geometry("1080x900")
+        self.root.minsize(920, 780)
 
         self.messages: queue.Queue[str] = queue.Queue()
         self.config = load_config(config_path)
@@ -125,9 +129,19 @@ class VirtualDeckApp:
         self.selected_profile_var = tk.StringVar(value=self.profiles.current_key)
         self.selected_event_var = tk.StringVar(value="BTN_01_PRESS")
         self.selected_action_var = tk.StringVar(value="")
+        self.selected_action_type_var = tk.StringVar(value="All")
         self.selected_label_var = tk.StringVar(value="")
         self.custom_app_name_var = tk.StringVar(value="")
         self.custom_app_path_var = tk.StringVar(value="")
+        self.custom_website_name_var = tk.StringVar(value="")
+        self.custom_website_url_var = tk.StringVar(value="")
+        self.custom_hotkey_name_var = tk.StringVar(value="")
+        self.custom_hotkey_key_var = tk.StringVar(value="")
+        self.hotkey_ctrl_var = tk.BooleanVar(value=True)
+        self.hotkey_shift_var = tk.BooleanVar(value=False)
+        self.hotkey_alt_var = tk.BooleanVar(value=False)
+        self.hotkey_win_var = tk.BooleanVar(value=False)
+        self.profile_name_var = tk.StringVar(value="")
         self.edit_mode_var = tk.BooleanVar(value=False)
         self.selected_card_event = "BTN_01_PRESS"
 
@@ -244,6 +258,7 @@ class VirtualDeckApp:
         ttk.Button(inner, text="Refresh Sonar", style="Small.TButton", command=self.refresh_sonar_status).pack(side="left", padx=4)
         ttk.Button(inner, text="Test Profile Sound", style="Small.TButton", command=self.test_profile_sound).pack(side="left", padx=4)
         ttk.Button(inner, text="Open Config Folder", style="Small.TButton", command=self.open_config_folder).pack(side="left", padx=4)
+        ttk.Button(inner, text="Backup Config", style="Small.TButton", command=self.backup_config).pack(side="left", padx=4)
         ttk.Checkbutton(inner, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).pack(side="right", padx=4)
 
     def repo_root(self) -> Path:
@@ -398,6 +413,8 @@ class VirtualDeckApp:
             return "Windows"
         if action.startswith("media."):
             return "Media"
+        if action.startswith("app.open."):
+            return "Website"
         if action.startswith("app."):
             return "App"
         if action.startswith("hotkey."):
@@ -472,9 +489,9 @@ class VirtualDeckApp:
         frame.pack(fill="x")
         ttk.Label(frame, text="Profile").grid(row=0, column=0, sticky="w", padx=8, pady=6)
         profile_values = list(self.config["profiles"]["items"].keys())
-        profile_combo = ttk.Combobox(frame, values=profile_values, textvariable=self.selected_profile_var, state="readonly")
-        profile_combo.grid(row=0, column=1, sticky="ew", padx=8, pady=6)
-        profile_combo.bind("<<ComboboxSelected>>", lambda _e: self.load_editor_action())
+        self.profile_combo = ttk.Combobox(frame, values=profile_values, textvariable=self.selected_profile_var, state="readonly")
+        self.profile_combo.grid(row=0, column=1, sticky="ew", padx=8, pady=6)
+        self.profile_combo.bind("<<ComboboxSelected>>", lambda _e: self.load_editor_action())
 
         ttk.Label(frame, text="Control").grid(row=1, column=0, sticky="w", padx=8, pady=6)
         event_combo = ttk.Combobox(frame, values=EDITABLE_EVENTS, textvariable=self.selected_event_var, state="readonly")
@@ -484,29 +501,71 @@ class VirtualDeckApp:
         ttk.Label(frame, text="Button Name").grid(row=2, column=0, sticky="w", padx=8, pady=6)
         ttk.Entry(frame, textvariable=self.selected_label_var).grid(row=2, column=1, sticky="ew", padx=8, pady=6)
 
-        ttk.Label(frame, text="Action").grid(row=3, column=0, sticky="w", padx=8, pady=6)
+        ttk.Label(frame, text="Action Type").grid(row=3, column=0, sticky="w", padx=8, pady=6)
+        action_type_combo = ttk.Combobox(frame, values=ACTION_TYPES, textvariable=self.selected_action_type_var, state="readonly")
+        action_type_combo.grid(row=3, column=1, sticky="ew", padx=8, pady=6)
+        action_type_combo.bind("<<ComboboxSelected>>", lambda _e: self.update_action_choices())
+
+        ttk.Label(frame, text="Action").grid(row=4, column=0, sticky="w", padx=8, pady=6)
         self.action_combo = ttk.Combobox(frame, values=available_actions(self.config), textvariable=self.selected_action_var)
-        self.action_combo.grid(row=3, column=1, sticky="ew", padx=8, pady=6)
+        self.action_combo.grid(row=4, column=1, sticky="ew", padx=8, pady=6)
         self.update_action_choices()
 
-        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=4, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
-        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=5, column=0, padx=8, pady=6, sticky="ew")
-        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=5, column=1, padx=8, pady=6, sticky="ew")
+        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=5, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
+        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=6, column=0, padx=8, pady=6, sticky="ew")
+        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=6, column=1, padx=8, pady=6, sticky="ew")
 
-        app_box = ttk.LabelFrame(frame, text="Add your own app")
-        app_box.grid(row=6, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
-        ttk.Label(app_box, text="Name").grid(row=0, column=0, sticky="w", padx=6, pady=4)
-        ttk.Entry(app_box, textvariable=self.custom_app_name_var).grid(row=0, column=1, sticky="ew", padx=6, pady=4)
-        ttk.Label(app_box, text="File").grid(row=1, column=0, sticky="w", padx=6, pady=4)
-        ttk.Entry(app_box, textvariable=self.custom_app_path_var).grid(row=1, column=1, sticky="ew", padx=6, pady=4)
-        ttk.Button(app_box, text="Browse App...", command=self.browse_custom_app).grid(row=2, column=0, padx=6, pady=6, sticky="ew")
-        ttk.Button(app_box, text="Add App Action", command=self.add_custom_app_action).grid(row=2, column=1, padx=6, pady=6, sticky="ew")
-        app_box.columnconfigure(1, weight=1)
+        actions_box = ttk.LabelFrame(frame, text="Create custom actions")
+        actions_box.grid(row=7, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
+        self._build_custom_actions_panel(actions_box)
 
-        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=7, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
-        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. Button Name controls the text shown on the card.", style="Sub.TLabel", wraplength=360).grid(row=8, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
+        profile_box = ttk.LabelFrame(frame, text="Profiles and backups")
+        profile_box.grid(row=8, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
+        self._build_profile_tools_panel(profile_box)
+
+        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=9, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
+        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. Button Name controls the text shown on the card.", style="Sub.TLabel", wraplength=360).grid(row=10, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
         frame.columnconfigure(1, weight=1)
         self.load_editor_action()
+
+    def _build_custom_actions_panel(self, parent: ttk.LabelFrame) -> None:
+        ttk.Label(parent, text="App name").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_app_name_var).grid(row=0, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Label(parent, text="App file").grid(row=1, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_app_path_var).grid(row=1, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(parent, text="Browse App...", command=self.browse_custom_app).grid(row=2, column=0, padx=6, pady=5, sticky="ew")
+        ttk.Button(parent, text="Add App", command=self.add_custom_app_action).grid(row=2, column=1, padx=6, pady=5, sticky="ew")
+
+        ttk.Separator(parent).grid(row=3, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
+        ttk.Label(parent, text="Website name").grid(row=4, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_website_name_var).grid(row=4, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Label(parent, text="URL").grid(row=5, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_website_url_var).grid(row=5, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(parent, text="Add Website", command=self.add_custom_website_action).grid(row=6, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
+
+        ttk.Separator(parent).grid(row=7, column=0, columnspan=2, sticky="ew", padx=6, pady=6)
+        ttk.Label(parent, text="Hotkey name").grid(row=8, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_hotkey_name_var).grid(row=8, column=1, sticky="ew", padx=6, pady=4)
+        mods = ttk.Frame(parent)
+        mods.grid(row=9, column=0, columnspan=2, sticky="ew", padx=6, pady=2)
+        ttk.Checkbutton(mods, text="Ctrl", variable=self.hotkey_ctrl_var).pack(side="left")
+        ttk.Checkbutton(mods, text="Shift", variable=self.hotkey_shift_var).pack(side="left")
+        ttk.Checkbutton(mods, text="Alt", variable=self.hotkey_alt_var).pack(side="left")
+        ttk.Checkbutton(mods, text="Win", variable=self.hotkey_win_var).pack(side="left")
+        ttk.Label(parent, text="Key").grid(row=10, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.custom_hotkey_key_var).grid(row=10, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(parent, text="Add Hotkey", command=self.add_custom_hotkey_action).grid(row=11, column=0, columnspan=2, padx=6, pady=5, sticky="ew")
+        parent.columnconfigure(1, weight=1)
+
+    def _build_profile_tools_panel(self, parent: ttk.LabelFrame) -> None:
+        ttk.Label(parent, text="New/rename name").grid(row=0, column=0, sticky="w", padx=6, pady=4)
+        ttk.Entry(parent, textvariable=self.profile_name_var).grid(row=0, column=1, sticky="ew", padx=6, pady=4)
+        ttk.Button(parent, text="New Page", command=self.create_profile_page).grid(row=1, column=0, padx=6, pady=4, sticky="ew")
+        ttk.Button(parent, text="Duplicate Current", command=self.duplicate_current_profile).grid(row=1, column=1, padx=6, pady=4, sticky="ew")
+        ttk.Button(parent, text="Rename Current", command=self.rename_current_profile).grid(row=2, column=0, padx=6, pady=4, sticky="ew")
+        ttk.Button(parent, text="Backup Config", command=self.backup_config).grid(row=2, column=1, padx=6, pady=4, sticky="ew")
+        ttk.Button(parent, text="Restore Config...", command=self.restore_config).grid(row=3, column=0, columnspan=2, padx=6, pady=4, sticky="ew")
+        parent.columnconfigure(1, weight=1)
 
     def _bind_shortcuts(self) -> None:
         for idx, event in enumerate(BUTTON_EVENTS, start=1):
@@ -576,6 +635,18 @@ class VirtualDeckApp:
 
     def update_action_choices(self) -> None:
         values = available_actions(self.config)
+        kind = self.selected_action_type_var.get()
+        if kind != "All":
+            prefixes = {
+                "Sonar": ("sonar.",),
+                "Windows": ("windows.",),
+                "Media": ("media.",),
+                "App": ("app.launch.",),
+                "Website": ("app.open.",),
+                "Hotkey": ("hotkey.",),
+                "Profile": ("profile.",),
+            }.get(kind, tuple())
+            values = [v for v in values if v.startswith(prefixes)]
         if hasattr(self, "action_combo"):
             self.action_combo.configure(values=values)
 
@@ -596,21 +667,176 @@ class VirtualDeckApp:
         if not raw_name or not path:
             messagebox.showwarning("SonarDeck", "Pick an app file and give it a short name first.")
             return
-        key = "".join(ch.lower() if ch.isalnum() else "_" for ch in raw_name).strip("_")
-        while "__" in key:
-            key = key.replace("__", "_")
+        key = self._safe_key(raw_name)
         if not key:
             messagebox.showwarning("SonarDeck", "Use at least one letter or number in the app name.")
             return
         self.config.setdefault("actions", {}).setdefault("app", {}).setdefault("launch", {})[key] = path
         action = f"app.launch.{key}"
         ACTION_LABELS[action] = "Open " + raw_name.replace("_", " ").title()
+        self.selected_action_type_var.set("App")
         self.selected_action_var.set(action)
         if not self.selected_label_var.get().strip():
             self.selected_label_var.set(raw_name.replace("_", " ").title())
         save_config(self.config, self.config_path)
         self.update_action_choices()
         self._log(f"Added app action: {action} -> {path}")
+
+    def _safe_key(self, raw_name: str) -> str:
+        key = "".join(ch.lower() if ch.isalnum() else "_" for ch in raw_name.strip()).strip("_")
+        while "__" in key:
+            key = key.replace("__", "_")
+        return key
+
+    def add_custom_website_action(self) -> None:
+        raw_name = self.custom_website_name_var.get().strip()
+        url = self.custom_website_url_var.get().strip()
+        if not raw_name or not url:
+            messagebox.showwarning("SonarDeck", "Enter a website name and URL first.")
+            return
+        if "://" not in url:
+            url = "https://" + url
+            self.custom_website_url_var.set(url)
+        key = self._safe_key(raw_name)
+        if not key:
+            messagebox.showwarning("SonarDeck", "Use at least one letter or number in the website name.")
+            return
+        self.config.setdefault("actions", {}).setdefault("app", {}).setdefault("open", {})[key] = url
+        action = f"app.open.{key}"
+        ACTION_LABELS[action] = "Open " + raw_name.replace("_", " ").title()
+        self.selected_action_type_var.set("Website")
+        self.selected_action_var.set(action)
+        if not self.selected_label_var.get().strip():
+            self.selected_label_var.set(raw_name.replace("_", " ").title())
+        save_config(self.config, self.config_path)
+        self.update_action_choices()
+        self._log(f"Added website action: {action} -> {url}")
+
+    def add_custom_hotkey_action(self) -> None:
+        raw_name = self.custom_hotkey_name_var.get().strip()
+        key_text = self.custom_hotkey_key_var.get().strip().lower()
+        if not raw_name or not key_text:
+            messagebox.showwarning("SonarDeck", "Enter a hotkey name and key first.")
+            return
+        keys = []
+        if self.hotkey_ctrl_var.get():
+            keys.append("ctrl")
+        if self.hotkey_shift_var.get():
+            keys.append("shift")
+        if self.hotkey_alt_var.get():
+            keys.append("alt")
+        if self.hotkey_win_var.get():
+            keys.append("win")
+        keys.append(key_text)
+        key = self._safe_key(raw_name)
+        if not key:
+            messagebox.showwarning("SonarDeck", "Use at least one letter or number in the hotkey name.")
+            return
+        self.config.setdefault("actions", {}).setdefault("hotkey", {})[key] = keys
+        action = f"hotkey.{key}"
+        ACTION_LABELS[action] = raw_name.replace("_", " ").title()
+        self.selected_action_type_var.set("Hotkey")
+        self.selected_action_var.set(action)
+        if not self.selected_label_var.get().strip():
+            self.selected_label_var.set(raw_name.replace("_", " ").title())
+        save_config(self.config, self.config_path)
+        self.update_action_choices()
+        self._log(f"Added hotkey action: {action} -> {'+'.join(keys)}")
+
+    def refresh_profile_dropdowns(self) -> None:
+        # Rebuild profile manager after profile list edits; keep the GUI dropdown in sync.
+        self.profiles = ProfileManager(self.config["profiles"])
+        self.registry.ctx.profile_manager = self.profiles
+        if hasattr(self, "profile_combo"):
+            self.profile_combo.configure(values=list(self.config["profiles"]["items"].keys()))
+
+    def create_profile_page(self) -> None:
+        name = self.profile_name_var.get().strip() or "New Page"
+        key = self._safe_key(name)
+        if not key:
+            return
+        items = self.config["profiles"]["items"]
+        base_key = key
+        counter = 2
+        while key in items:
+            key = f"{base_key}_{counter}"
+            counter += 1
+        items[key] = {"name": name, "events": {"BTN_08_LONG": "profile.next"}, "labels": {"BTN_08_LONG": "Switch Page"}}
+        save_config(self.config, self.config_path)
+        self.refresh_profile_dropdowns()
+        self.selected_profile_var.set(key)
+        self.profiles.current_key = key
+        self.update_profile_ui()
+        self._log(f"Created profile/page: {name}")
+
+    def duplicate_current_profile(self) -> None:
+        current = str(self.profiles.current_key)
+        name = self.profile_name_var.get().strip() or (self.profiles.current_name + " Copy")
+        key = self._safe_key(name)
+        items = self.config["profiles"]["items"]
+        base_key = key or (current + "_copy")
+        key = base_key
+        counter = 2
+        while key in items:
+            key = f"{base_key}_{counter}"
+            counter += 1
+        items[key] = json.loads(json.dumps(items[current]))
+        items[key]["name"] = name
+        save_config(self.config, self.config_path)
+        self.refresh_profile_dropdowns()
+        self.profiles.current_key = key
+        self.update_profile_ui()
+        self._log(f"Duplicated profile/page: {name}")
+
+    def rename_current_profile(self) -> None:
+        name = self.profile_name_var.get().strip()
+        if not name:
+            messagebox.showwarning("SonarDeck", "Enter the new profile/page name first.")
+            return
+        current = str(self.profiles.current_key)
+        self.config["profiles"]["items"][current]["name"] = name
+        save_config(self.config, self.config_path)
+        self.refresh_profile_dropdowns()
+        self.profiles.current_key = current
+        self.update_profile_ui()
+        self._log(f"Renamed current profile/page to: {name}")
+
+    def config_file_path(self) -> Path:
+        return self.repo_root() / "bridge" / "config.json"
+
+    def backup_config(self) -> None:
+        src = self.config_file_path()
+        if not src.exists():
+            messagebox.showwarning("SonarDeck", f"No config file found yet:\n\n{src}")
+            return
+        backup_dir = self.repo_root() / "bridge" / "backups"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        dest = backup_dir / f"config-{stamp}.json"
+        shutil.copy2(src, dest)
+        self._log(f"Backed up config: {dest}")
+        messagebox.showinfo("SonarDeck", f"Config backup created:\n\n{dest}")
+
+    def restore_config(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Restore SonarDeck config backup",
+            initialdir=str(self.repo_root() / "bridge" / "backups"),
+            filetypes=[("JSON config", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            data = json.loads(Path(path).read_text())
+            if "profiles" not in data or "actions" not in data:
+                raise ValueError("Selected file does not look like a SonarDeck config.")
+            shutil.copy2(path, self.config_file_path())
+            self.config = load_config(self.config_path)
+            self.refresh_profile_dropdowns()
+            self.update_action_choices()
+            self.update_profile_ui()
+            self._log(f"Restored config from: {path}")
+        except Exception as exc:
+            messagebox.showwarning("SonarDeck", f"Could not restore config.\n\n{exc}")
 
     def test_selected_mapping(self) -> None:
         profile = self.selected_profile_var.get()

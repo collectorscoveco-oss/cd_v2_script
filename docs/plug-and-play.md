@@ -27,7 +27,10 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 - a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode; updates use `git pull --ff-only`, block if local project files changed, and can restart the Virtual Controller
 - Edit Mapping Mode: click a deck button to select it for editing instead of firing it
 - editable button names and control mappings saved to `bridge\config.json`
-- a GUI app picker for adding custom app-launch actions without editing JSON
+- an Action Type filter so the mapping list is not one giant dropdown
+- GUI builders for custom app, website, and hotkey buttons without editing JSON
+- profile/page create, duplicate, and rename tools
+- config backup and restore
 - F1-F9 and Ctrl+Alt+1..9 shortcuts while the window is focused
 - profile-switch audio modes: `off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`
 - a Test Current sound button and WAV picker
