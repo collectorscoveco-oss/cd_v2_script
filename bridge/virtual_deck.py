@@ -287,11 +287,7 @@ class VirtualDeckApp:
             self._log(f"Opened config folder: {folder}")
         except Exception as exc:
             self._log(f"Could not open config folder: {exc}")
-            messagebox.showwarning("SonarDeck", f"Could not open config folder.
-
-{folder}
-
-{exc}")
+            messagebox.showwarning("SonarDeck", f"Could not open config folder.\n\n{folder}\n\n{exc}")
 
     def _create_deck_card(self, parent: ttk.LabelFrame, event: str, index: int) -> None:
         outer = tk.Frame(parent, bg="#0b0f17", highlightthickness=1, highlightbackground="#2d3748", bd=0)
