@@ -48,6 +48,9 @@ function App() {
   const [selected, setSelected] = useState<DeckButton | null>(null)
   const [labelDraft, setLabelDraft] = useState('')
   const [actionDraft, setActionDraft] = useState('')
+  const [appKey, setAppKey] = useState('')
+  const [appPath, setAppPath] = useState('')
+  const [appLabel, setAppLabel] = useState('')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
   const longPressTimer = useRef<number | null>(null)
@@ -163,6 +166,25 @@ function App() {
     setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
   }
 
+  async function addManualAppAction(assignToSelected: boolean) {
+    if (!state) return
+    const key = appKey || appLabel || 'custom_app'
+    const label = appLabel || appKey || 'Custom App'
+    const next = await api<State>('/app-action', {
+      method: 'POST',
+      body: JSON.stringify({
+        key,
+        label,
+        command: appPath,
+        profile: assignToSelected && selected ? state.profile.key : '',
+        event: assignToSelected && selected ? selected.event : '',
+      }),
+    })
+    setState(next)
+    if (selected) setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+    setActionDraft(`app.launch.${key.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')}`)
+  }
+
   return (
     <main className="app" style={{ '--accent': accent } as React.CSSProperties}>
       <aside className="sidebar">
@@ -251,6 +273,17 @@ function App() {
                     <button className="primary" onClick={saveMapping}><Save size={16} /> Save Action + Name</button>
                     <button className="ghost" onClick={saveLabel}>Save Name Only</button>
                     <button className="ghost" onClick={clearMapping}>Clear Button Mapping</button>
+                    <div className="divider" />
+                    <strong className="miniHeading">Add EXE manually</strong>
+                    <label>Action name</label>
+                    <input value={appLabel} onChange={(e) => setAppLabel(e.target.value)} placeholder="Example: Spotify" />
+                    <label>Action key</label>
+                    <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="Example: spotify" />
+                    <label>Full .exe path</label>
+                    <input value={appPath} onChange={(e) => setAppPath(e.target.value)} placeholder={'Example: C:\\Users\\crsma\\AppData\\Roaming\\Spotify\\Spotify.exe'} />
+                    <button className="primary" onClick={() => addManualAppAction(true)}>Add EXE + Assign to Selected Button</button>
+                    <button className="ghost" onClick={() => addManualAppAction(false)}>Add EXE to Action List Only</button>
+                    <div className="hintBox smallHint">Browser apps cannot reliably browse real Windows paths yet, so paste the full path here. You can right-click a Start Menu shortcut, open file location, then copy the target path.</div>
                   </div>
                 ) : (
                   <div className="empty">Right-click a deck button to select it for remapping. Button 10 can also be remapped here.</div>
@@ -260,7 +293,7 @@ function App() {
 
             {tab === 'actions' && (
               <>
-                <div className="sectionTitle"><h3>Available Actions</h3><span>Use these in Mapping to fix buttons manually.</span></div>
+                <div className="sectionTitle"><h3>Available Actions</h3><span>Use Mapping to add .exe paths and assign them.</span></div>
                 <div className="actionList">
                   {Object.entries(actionGroups).map(([group, actions]) => (
                     <details key={group} open>

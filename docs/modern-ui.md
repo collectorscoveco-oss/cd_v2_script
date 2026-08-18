@@ -34,6 +34,7 @@ That starts:
 - pages/actions/hardware tabs
 - 10-button layout support: Button 10 is a wide Play/Pause control; hold Button 10 for Next Page (`BTN_10_LONG`)
 - Manual remapping in the Mapping tab: right-click a card, choose an action from the dropdown, then Save Action + Name
+- Manual `.exe` app action creation in the Mapping tab: paste a full Windows `.exe` path, add it to the action list, and optionally assign it directly to the selected button
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps

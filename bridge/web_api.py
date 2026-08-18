@@ -228,6 +228,31 @@ class SonarDeckApiState:
             self.append_log(f"Saved mapping: {profile} {event} -> {action or '(unmapped)'}")
             return self.snapshot()
 
+    def add_app_action(self, key: str, label: str, command: str, profile: str = "", event: str = "") -> dict:
+        with self.lock:
+            clean_key = "".join(ch if ch.isalnum() else "_" for ch in key.strip().lower()).strip("_")
+            if not clean_key:
+                raise ValueError("Action key is required, for example: spotify or discord")
+            clean_command = command.strip().strip('"')
+            if not clean_command:
+                raise ValueError("EXE/app path is required")
+            actions = self.config.setdefault("actions", {})
+            app_actions = actions.setdefault("app", {})
+            launch_actions = app_actions.setdefault("launch", {})
+            launch_actions[clean_key] = clean_command
+            action_id = f"app.launch.{clean_key}"
+            if profile and event:
+                item = self.config["profiles"]["items"].setdefault(profile, {})
+                item.setdefault("events", {})[event] = action_id
+                if label.strip():
+                    item.setdefault("labels", {})[event] = label.strip()
+            save_config(self.config, self.config_path)
+            self.reload()
+            if profile:
+                self.profiles.current_key = profile
+            self.append_log(f"Added app action: {action_id} -> {clean_command}")
+            return self.snapshot()
+
 
 class SonarDeckRequestHandler(BaseHTTPRequestHandler):
     server_version = "SonarDeckModernApi/0.1"
@@ -276,6 +301,14 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                     str(payload.get("event", "")),
                     str(payload.get("action", "")),
                     payload.get("label"),
+                )
+            elif parsed.path == "/api/app-action":
+                state = self.server.state.add_app_action(
+                    str(payload.get("key", "")),
+                    str(payload.get("label", "")),
+                    str(payload.get("command", "")),
+                    str(payload.get("profile", "")),
+                    str(payload.get("event", "")),
                 )
             else:
                 self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
