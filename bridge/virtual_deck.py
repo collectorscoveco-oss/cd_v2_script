@@ -499,33 +499,35 @@ class VirtualDeckApp:
         event_combo.grid(row=1, column=1, sticky="ew", padx=8, pady=6)
         event_combo.bind("<<ComboboxSelected>>", lambda _e: self.load_editor_action())
 
-        ttk.Label(frame, text="Button Name").grid(row=2, column=0, sticky="w", padx=8, pady=6)
+        ttk.Label(frame, text="Button Display Name").grid(row=2, column=0, sticky="w", padx=8, pady=6)
         ttk.Entry(frame, textvariable=self.selected_label_var).grid(row=2, column=1, sticky="ew", padx=8, pady=6)
+        ttk.Button(frame, text="Save Name Only", command=self.save_button_name).grid(row=3, column=0, padx=8, pady=(0, 6), sticky="ew")
+        ttk.Button(frame, text="Clear Custom Name", command=self.clear_button_name).grid(row=3, column=1, padx=8, pady=(0, 6), sticky="ew")
 
-        ttk.Label(frame, text="Action Type").grid(row=3, column=0, sticky="w", padx=8, pady=6)
+        ttk.Label(frame, text="Action Type").grid(row=4, column=0, sticky="w", padx=8, pady=6)
         action_type_combo = ttk.Combobox(frame, values=ACTION_TYPES, textvariable=self.selected_action_type_var, state="readonly")
-        action_type_combo.grid(row=3, column=1, sticky="ew", padx=8, pady=6)
+        action_type_combo.grid(row=4, column=1, sticky="ew", padx=8, pady=6)
         action_type_combo.bind("<<ComboboxSelected>>", lambda _e: self.update_action_choices())
 
-        ttk.Label(frame, text="Action").grid(row=4, column=0, sticky="w", padx=8, pady=6)
+        ttk.Label(frame, text="Action").grid(row=5, column=0, sticky="w", padx=8, pady=6)
         self.action_combo = ttk.Combobox(frame, values=available_actions(self.config), textvariable=self.selected_action_var)
-        self.action_combo.grid(row=4, column=1, sticky="ew", padx=8, pady=6)
+        self.action_combo.grid(row=5, column=1, sticky="ew", padx=8, pady=6)
         self.update_action_choices()
 
-        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=5, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
-        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=6, column=0, padx=8, pady=6, sticky="ew")
-        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=6, column=1, padx=8, pady=6, sticky="ew")
+        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=6, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
+        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=7, column=0, padx=8, pady=6, sticky="ew")
+        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=7, column=1, padx=8, pady=6, sticky="ew")
 
         actions_box = ttk.LabelFrame(frame, text="Create custom actions")
-        actions_box.grid(row=7, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
+        actions_box.grid(row=8, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
         self._build_custom_actions_panel(actions_box)
 
         profile_box = ttk.LabelFrame(frame, text="Profiles and backups")
-        profile_box.grid(row=8, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
+        profile_box.grid(row=9, column=0, columnspan=2, sticky="ew", padx=8, pady=(8, 6))
         self._build_profile_tools_panel(profile_box)
 
-        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=9, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
-        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. Button Name controls the text shown on the card.", style="Sub.TLabel", wraplength=360).grid(row=10, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
+        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=10, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
+        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. Button Display Name controls the text shown on the card.", style="Sub.TLabel", wraplength=360).grid(row=11, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
         frame.columnconfigure(1, weight=1)
         self.load_editor_action()
 
@@ -614,6 +616,27 @@ class VirtualDeckApp:
         label = item.get("labels", {}).get(event, "")
         self.selected_action_var.set(action)
         self.selected_label_var.set(label)
+
+    def save_button_name(self) -> None:
+        profile = self.selected_profile_var.get()
+        event = self.selected_event_var.get()
+        if not profile or not event:
+            messagebox.showwarning("SonarDeck", "Choose a profile and control first.")
+            return
+        item = self.config["profiles"]["items"][profile]
+        label = self.selected_label_var.get().strip()
+        labels = item.setdefault("labels", {})
+        if label:
+            labels[event] = label
+        else:
+            labels.pop(event, None)
+        save_config(self.config, self.config_path)
+        self.update_profile_ui()
+        self._log(f"Saved button display name: {profile} {event} -> {label or '(auto)'}")
+
+    def clear_button_name(self) -> None:
+        self.selected_label_var.set("")
+        self.save_button_name()
 
     def save_mapping(self) -> None:
         profile = self.selected_profile_var.get()
@@ -948,7 +971,7 @@ class VirtualDeckApp:
             self.registry.execute(action)
         except Exception as exc:
             self._log(f"Test action failed: {exc}")
-        self.root.after(0, self._after_action)
+        self.root.after(0, lambda: self._after_action(profile_changed=False))
 
     def switch_to_selected_profile(self) -> None:
         profile = self.selected_profile_var.get()
@@ -1003,11 +1026,17 @@ class VirtualDeckApp:
         threading.Thread(target=self._fire_event_worker, args=(event,), daemon=True).start()
 
     def _fire_event_worker(self, event: str) -> None:
+        before_profile = str(self.profiles.current_key)
         handle_event(event, self.profiles, self.registry)
-        self.root.after(0, self._after_action)
+        after_profile = str(self.profiles.current_key)
+        self.root.after(0, lambda: self._after_action(profile_changed=before_profile != after_profile))
 
-    def _after_action(self) -> None:
-        self.update_profile_ui()
+    def _after_action(self, profile_changed: bool = False) -> None:
+        # Avoid redrawing all deck cards after every normal click. Tkinter's full
+        # card redraw was causing a visible click-time flicker/glitch. Only redraw
+        # cards when the active page/profile actually changed.
+        if profile_changed:
+            self.update_profile_ui()
         self.refresh_sonar_status(silent=True)
         self.root.after(750, lambda: self.refresh_sonar_status(silent=True))
 

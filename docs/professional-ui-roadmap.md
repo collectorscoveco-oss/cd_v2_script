@@ -8,7 +8,8 @@ The Virtual Controller is intentionally evolving from a test utility into a real
 - Clean cards instead of plain default buttons.
 - Clear hierarchy: deck first, editing second, logs last.
 - Obvious page/profile identity through accent color and sound.
-- No flashy hover effects; stable buttons are more professional.
+- stable no-flicker controls: deck cards do not change color on hover and normal clicks avoid full deck redraws
+- explicit button display-name controls: Save Name Only and Clear Custom Name
 - Fewer giant dropdowns; prefer filtered choices and small builders.
 
 ## Next polish passes

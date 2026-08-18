@@ -23,8 +23,8 @@
 - Added GUI builders for custom website buttons and custom hotkey buttons.
 - Improved the custom app builder with a clearer Browse for `.exe` button plus a Find `.exe` by Name helper that searches common Windows app folders and lets the user pick the correct match.
 - Added profile/page tools for creating, duplicating, renaming pages, plus config backup/restore.
-- Removed deck-card hover event bindings entirely to eliminate the remaining Tkinter graphical glitch.
-- Added editable button names/labels saved per profile/control.
+- Removed deck-card hover event bindings and avoided full deck redraws after normal button clicks to eliminate click-time Tkinter flicker/glitch.
+- Added editable button names/labels saved per profile/control, with dedicated Save Name Only and Clear Custom Name buttons.
 - Added a GUI app picker so custom apps can be selected and mapped without editing JSON.
 - Reduced duplicate default short-press profile-switch mappings; long-press Button 8 remains the dedicated page switch.
 - Added more default profiles: Gaming, Streaming, Music, and Desktop.
@@ -34,3 +34,4 @@
 - Added `scripts/reset_config_to_default.bat` and `docs/plug-and-play.md` so the Windows setup path is closer to plug-and-play.
 - Updated `scripts/setup_windows.bat` to create `bridge/config.json` automatically when missing.
 - Changed the default V1 `BTN_08_PRESS` mapping to media play/pause so the default config has no unimplemented output-rotation action; `BTN_08_LONG` remains profile/page switch.
+- Added `docs/ui-tech-direction.md` to capture the planned move from raw Tkinter toward a more professional Tauri/React UI with the Python bridge kept for control logic.
