@@ -389,8 +389,7 @@ class VirtualDeckApp:
         self.selected_profile_var.set(current_key)
         for idx, event in enumerate(BUTTON_EVENTS, start=1):
             action = self.profiles.action_for_event(event)
-            label = self.action_label(action)
-            self.deck_buttons[event].configure(text=f"{idx}\n{label}")
+            self.update_deck_card(event, idx, action)
         for event, btn in self.encoder_buttons.items():
             btn.configure(text=self.action_label(self.profiles.action_for_event(event)))
         self.profile_switch_button.configure(text=f"Long Press B8: {self.action_label(self.profiles.action_for_event('BTN_08_LONG'))}")
