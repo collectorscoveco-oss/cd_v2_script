@@ -12,23 +12,32 @@ from .config import load_config
 from .main import handle_event, setup_logging
 from .profiles import ProfileManager
 
-BUTTON_LAYOUT = [
-    ("BTN_01_PRESS", "Game +"),
-    ("BTN_02_PRESS", "Game -"),
-    ("BTN_03_PRESS", "Chat +"),
-    ("BTN_04_PRESS", "Chat -"),
-    ("BTN_05_PRESS", "Media +"),
-    ("BTN_06_PRESS", "Media -"),
-    ("BTN_07_PRESS", "Mic Mute"),
-    ("BTN_08_PRESS", "Play/Pause"),
-    ("BTN_09_PRESS", "Win Mute"),
-]
+BUTTON_EVENTS = [f"BTN_{idx:02d}_PRESS" for idx in range(1, 10)]
+ENCODER_EVENTS = ["ENC_01_CCW", "ENC_01_PRESS", "ENC_01_CW"]
 
-ENCODER_LAYOUT = [
-    ("ENC_01_CCW", "Windows Vol -"),
-    ("ENC_01_PRESS", "Windows Mute"),
-    ("ENC_01_CW", "Windows Vol +"),
-]
+ACTION_LABELS = {
+    "profile.next": "Switch Page",
+    "windows.volume_up": "Windows Vol +",
+    "windows.volume_down": "Windows Vol -",
+    "windows.mute": "Windows Mute",
+    "media.play_pause": "Play/Pause",
+    "media.next": "Media Next",
+    "media.previous": "Media Prev",
+    "sonar.game.volume_up": "Game +",
+    "sonar.game.volume_down": "Game -",
+    "sonar.chat.volume_up": "Chat +",
+    "sonar.chat.volume_down": "Chat -",
+    "sonar.media.volume_up": "Media +",
+    "sonar.media.volume_down": "Media -",
+    "sonar.aux.volume_up": "Aux +",
+    "sonar.aux.volume_down": "Aux -",
+    "sonar.mic.toggle_mute": "Mic Mute",
+    "hotkey.discord_mute": "Discord Mute",
+    "app.launch.discord": "Open Discord",
+    "app.launch.steelseries_gg": "Open GG",
+    "app.launch.bambu_studio": "Open Bambu",
+    "app.open.youtube": "Open YouTube",
+}
 
 
 class TextQueueHandler(logging.Handler):
@@ -58,8 +67,10 @@ class VirtualDeckApp:
         self.profiles = ProfileManager(self.config["profiles"])
         self.registry = ActionRegistry(ActionContext(config=self.config, profile_manager=self.profiles))
 
-        self.profile_var = tk.StringVar(value=self.profiles.current_name)
+        self.profile_var = tk.StringVar(value=f"Current profile: {self.profiles.current_name}")
         self.sonar_status_var = tk.StringVar(value="Sonar status: not checked")
+        self.deck_buttons: dict[str, ttk.Button] = {}
+        self.encoder_buttons: dict[str, ttk.Button] = {}
         self.mode_var = tk.StringVar(value="Mode: ?")
         self.volume_var = tk.StringVar(value="Volumes: ?")
 
@@ -111,23 +122,28 @@ class VirtualDeckApp:
 
         grid_frame = ttk.Frame(outer)
         grid_frame.pack(pady=(4, 14))
-        for i, (event, label) in enumerate(BUTTON_LAYOUT):
+        for i, event in enumerate(BUTTON_EVENTS):
             btn = ttk.Button(
                 grid_frame,
-                text=f"{i + 1}\n{label}",
+                text="",
                 style="Deck.TButton",
                 command=lambda e=event: self.fire_event(e),
             )
             btn.grid(row=i // 3, column=i % 3, padx=8, pady=8, sticky="nsew", ipadx=28, ipady=18)
+            self.deck_buttons[event] = btn
         for col in range(3):
             grid_frame.columnconfigure(col, weight=1)
 
         encoder_frame = ttk.LabelFrame(outer, text="Encoder / profile controls")
         encoder_frame.pack(fill="x", pady=(0, 14))
-        for i, (event, label) in enumerate(ENCODER_LAYOUT):
-            ttk.Button(encoder_frame, text=label, style="Small.TButton", command=lambda e=event: self.fire_event(e)).grid(row=0, column=i, padx=6, pady=8, sticky="ew")
+        for i, event in enumerate(ENCODER_EVENTS):
+            btn = ttk.Button(encoder_frame, text="", style="Small.TButton", command=lambda e=event: self.fire_event(e))
+            btn.grid(row=0, column=i, padx=6, pady=8, sticky="ew")
+            self.encoder_buttons[event] = btn
             encoder_frame.columnconfigure(i, weight=1)
-        ttk.Button(encoder_frame, text="Long Press B8: Switch Page", style="Small.TButton", command=lambda: self.fire_event("BTN_08_LONG")).grid(row=1, column=0, columnspan=3, padx=6, pady=(0, 8), sticky="ew")
+        self.profile_switch_button = ttk.Button(encoder_frame, text="", style="Small.TButton", command=lambda: self.fire_event("BTN_08_LONG"))
+        self.profile_switch_button.grid(row=1, column=0, columnspan=3, padx=6, pady=(0, 8), sticky="ew")
+        self.update_profile_ui()
 
         log_frame = ttk.LabelFrame(outer, text="Status log")
         log_frame.pack(fill="both", expand=True)
@@ -136,6 +152,29 @@ class VirtualDeckApp:
         scroll = ttk.Scrollbar(log_frame, command=self.log_text.yview)
         scroll.pack(side="right", fill="y")
         self.log_text.configure(yscrollcommand=scroll.set)
+
+    def action_label(self, action: str | None) -> str:
+        if not action:
+            return "Unmapped"
+        if action in ACTION_LABELS:
+            return ACTION_LABELS[action]
+        if action.startswith("app.launch."):
+            return "Open " + action.rsplit(".", 1)[-1].replace("_", " ").title()
+        if action.startswith("app.open."):
+            return "Open " + action.rsplit(".", 1)[-1].replace("_", " ").title()
+        return action.replace(".", " ")
+
+    def update_profile_ui(self) -> None:
+        self.profile_var.set(f"Current profile: {self.profiles.current_name}")
+        for idx, event in enumerate(BUTTON_EVENTS, start=1):
+            action = self.profiles.action_for_event(event)
+            label = self.action_label(action)
+            self.deck_buttons[event].configure(text=f"{idx}\n{label}")
+        for event, btn in self.encoder_buttons.items():
+            action = self.profiles.action_for_event(event)
+            btn.configure(text=self.action_label(action))
+        long_action = self.profiles.action_for_event("BTN_08_LONG")
+        self.profile_switch_button.configure(text=f"Long Press B8: {self.action_label(long_action)}")
 
     def _log(self, message: str) -> None:
         stamp = datetime.now().strftime("%H:%M:%S")
@@ -161,9 +200,12 @@ class VirtualDeckApp:
         self.root.after(0, self._after_action)
 
     def _after_action(self) -> None:
-        self.profile_var.set(f"Current profile: {self.profiles.current_name}")
-        if self.profiles.current_key == "sonar":
-            self.refresh_sonar_status(silent=True)
+        self.update_profile_ui()
+        # Refresh quickly for the virtual deck, then again after SteelSeries has had
+        # a moment to persist the new value. This keeps our status strip honest even
+        # when the GG app's own sliders lag until its view is refreshed.
+        self.refresh_sonar_status(silent=True)
+        self.root.after(750, lambda: self.refresh_sonar_status(silent=True))
 
     def refresh_sonar_status(self, silent: bool = False) -> None:
         threading.Thread(target=self._refresh_sonar_worker, args=(silent,), daemon=True).start()
