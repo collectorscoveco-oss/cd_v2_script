@@ -35,3 +35,4 @@
 - Updated `scripts/setup_windows.bat` to create `bridge/config.json` automatically when missing.
 - Changed the default V1 `BTN_08_PRESS` mapping to media play/pause so the default config has no unimplemented output-rotation action; `BTN_08_LONG` remains profile/page switch.
 - Added `docs/ui-tech-direction.md` to capture the planned move from raw Tkinter toward a more professional Tauri/React UI with the Python bridge kept for control logic.
+- Added the first modern UI prototype: `bridge.web_api`, `ui/` Vite React/TypeScript app, `scripts/setup_modern_ui.bat`, `scripts/run_modern_ui.bat`, and `docs/modern-ui.md`.

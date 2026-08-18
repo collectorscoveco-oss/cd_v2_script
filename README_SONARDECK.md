@@ -26,13 +26,21 @@ This fork keeps the original ConsoleDeck V2 files and adds a cleaner no-screen S
 scripts\setup_windows.bat
 ```
 
-Before the Arduino arrives, use the GUI virtual controller:
+Before the Arduino arrives, use either GUI:
 
 ```bat
 scripts\run_virtual_deck.bat
 ```
 
-The virtual controller now includes live Sonar mixer bars, profile-colored pages, polished Stream Deck-style button cards with no hover color changes and reduced click-time redraws, a top toolbar with Check / Install Updates, an Edit Mapping Mode where clicking a deck button selects it for editing, editable button display names with dedicated save/clear controls, an Action Type filter, GUI builders for custom app/website/hotkey buttons, a custom app `.exe` finder, profile/page create/duplicate/rename tools, config backup/restore, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).
+or try the new modern React/TypeScript prototype:
+
+```bat
+scripts\run_modern_ui.bat
+```
+
+The Tkinter virtual controller remains the most complete V1 tool. It includes live Sonar mixer bars, profile-colored pages, polished Stream Deck-style button cards with no hover color changes and reduced click-time redraws, a top toolbar with Check / Install Updates, an Edit Mapping Mode where clicking a deck button selects it for editing, editable button display names with dedicated save/clear controls, an Action Type filter, GUI builders for custom app/website/hotkey buttons, a custom app `.exe` finder, profile/page create/duplicate/rename tools, config backup/restore, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).
+
+The modern UI prototype starts a Python local API plus a Vite/React frontend. It currently supports profile switching, polished virtual deck cards, firing mapped buttons, and right-click display-name editing. See `docs\modern-ui.md`.
 
 When the Arduino arrives and is flashed/wired, run the hardware bridge:
 

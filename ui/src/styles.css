@@ -1,0 +1,70 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #080b12;
+  color: #f8fafc;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 980px; min-height: 100vh; background: radial-gradient(circle at top left, rgba(50,211,255,.16), transparent 34%), #080b12; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+.app { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; --accent: #32d3ff; }
+.sidebar { border-right: 1px solid rgba(148,163,184,.16); background: rgba(10,14,24,.84); backdrop-filter: blur(18px); padding: 22px; display: flex; flex-direction: column; gap: 22px; }
+.brand { display: flex; gap: 12px; align-items: center; }
+.brandIcon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 16px; color: #08111c; background: linear-gradient(135deg, var(--accent), #8b5cf6); box-shadow: 0 20px 60px rgba(50,211,255,.2); }
+h1 { font-size: 18px; margin: 0; letter-spacing: -.03em; }
+p { margin: 3px 0 0; color: #94a3b8; font-size: 13px; }
+nav { display: grid; gap: 8px; }
+nav button, .ghost, .profilePills button, .profileList button { border: 1px solid rgba(148,163,184,.14); color: #cbd5e1; background: rgba(15,23,42,.6); border-radius: 13px; padding: 10px 12px; text-align: left; transition: border-color .15s, color .15s, background .15s; }
+nav button:hover, .ghost:hover, .profilePills button:hover, .profileList button:hover { border-color: rgba(255,255,255,.26); color: white; }
+nav button.active, .profilePills button.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, rgba(15,23,42,.72)); color: white; }
+.ghost { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: auto; text-align: center; }
+
+.content { padding: 26px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; border: 1px solid rgba(148,163,184,.16); border-radius: 24px; background: rgba(15,23,42,.64); box-shadow: 0 20px 80px rgba(0,0,0,.22); }
+.eyebrow { color: var(--accent); text-transform: uppercase; font-size: 11px; letter-spacing: .16em; font-weight: 800; }
+h2, h3 { margin: 0; letter-spacing: -.04em; }
+h2 { font-size: 32px; }
+h3 { font-size: 18px; }
+.profilePills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.profilePills button { text-align: center; padding: 9px 12px; }
+.error { border: 1px solid rgba(248,113,113,.34); background: rgba(127,29,29,.38); color: #fecaca; border-radius: 18px; padding: 12px 14px; }
+
+.workspace { display: grid; grid-template-columns: minmax(560px, 1fr) 380px; gap: 18px; align-items: start; }
+.deckPanel, .inspector { border: 1px solid rgba(148,163,184,.16); border-radius: 28px; background: rgba(15,23,42,.58); padding: 18px; box-shadow: 0 24px 90px rgba(0,0,0,.2); }
+.sectionTitle { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 16px; }
+.sectionTitle span { color: #94a3b8; font-size: 13px; }
+.deckGrid { display: grid; grid-template-columns: repeat(3, minmax(145px, 1fr)); gap: 14px; }
+.deckCard { position: relative; min-height: 158px; border: 1px solid rgba(148,163,184,.14); border-radius: 24px; overflow: hidden; background: linear-gradient(180deg, rgba(30,41,59,.88), rgba(15,23,42,.94)); color: white; padding: 14px; text-align: left; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 42px rgba(0,0,0,.22); transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease; }
+.deckCard:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--cardColor) 70%, white 10%); box-shadow: 0 22px 52px rgba(0,0,0,.32); }
+.deckCard:active { transform: translateY(0) scale(.99); }
+.deckCard.picked { outline: 2px solid var(--cardColor); outline-offset: 3px; }
+.stripe { position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--cardColor); }
+.cardTop { display: flex; align-items: center; justify-content: space-between; color: #94a3b8; font-size: 12px; }
+.cardTop span { color: var(--cardColor); font-weight: 900; }
+.cardTop b { color: #020617; background: var(--cardColor); border-radius: 999px; padding: 3px 8px; font-size: 10px; }
+.cardIcon { margin-top: 20px; color: var(--cardColor); }
+.deckCard strong { display: block; font-size: 20px; line-height: 1.05; letter-spacing: -.04em; margin-top: 12px; }
+.deckCard small { display: block; color: #64748b; margin-top: 10px; }
+.hintBox, .empty, .statusCard, .readOnly { margin-top: 14px; border: 1px solid rgba(148,163,184,.12); background: rgba(2,6,23,.34); border-radius: 16px; padding: 12px; color: #94a3b8; }
+.formStack { display: grid; gap: 10px; }
+.formStack label { color: #94a3b8; font-size: 13px; }
+input { width: 100%; border: 1px solid rgba(148,163,184,.18); background: rgba(2,6,23,.72); color: white; border-radius: 14px; padding: 12px; outline: none; }
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.primary { border: 0; display: flex; align-items: center; justify-content: center; gap: 8px; color: #020617; font-weight: 800; background: linear-gradient(135deg, var(--accent), #a78bfa); border-radius: 14px; padding: 12px; }
+.actionList { display: grid; gap: 12px; max-height: 560px; overflow: auto; padding-right: 4px; }
+details { border: 1px solid rgba(148,163,184,.12); border-radius: 16px; padding: 10px; background: rgba(2,6,23,.22); }
+summary { color: white; font-weight: 800; margin-bottom: 8px; }
+code { display: block; color: #cbd5e1; background: rgba(15,23,42,.7); padding: 7px 8px; border-radius: 10px; margin: 5px 0; font-size: 12px; }
+.profileList { display: grid; gap: 8px; }
+.statusCard { display: flex; align-items: center; gap: 10px; }
+.logBar { border: 1px solid rgba(148,163,184,.12); background: rgba(2,6,23,.5); border-radius: 18px; padding: 12px; display: grid; gap: 5px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+
+@media (max-width: 1100px) {
+  body { min-width: 0; }
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .workspace { grid-template-columns: 1fr; }
+}
