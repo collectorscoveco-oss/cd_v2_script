@@ -32,7 +32,7 @@ Before the Arduino arrives, use the GUI virtual controller:
 scripts\run_virtual_deck.bat
 ```
 
-The virtual controller now includes live Sonar mixer bars, profile-colored pages, polished Stream Deck-style button cards with no hover color changes, a top toolbar with Check for Updates, an Edit Mapping Mode where clicking a deck button selects it for editing, editable button names and mappings, a GUI app picker for custom app buttons, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).
+The virtual controller now includes live Sonar mixer bars, profile-colored pages, polished Stream Deck-style button cards with no hover color changes, a top toolbar with Check / Install Updates, an Edit Mapping Mode where clicking a deck button selects it for editing, editable button names and mappings, a GUI app picker for custom app buttons, F1-F9/Ctrl+Alt shortcuts, and profile-switch audio modes (`off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`).
 
 When the Arduino arrives and is flashed/wired, run the hardware bridge:
 

@@ -17,7 +17,8 @@
 - Expanded the virtual controller with live Sonar mixer bars, profile-colored pages, keyboard shortcuts, a button/profile editor, and profile-switch sound controls/test buttons.
 - Reworked the virtual deck buttons into polished Stream Deck-style cards with action category colors and an Edit Mapping Mode where clicking a deck button selects it for editing.
 - Smoothed virtual deck card hover behavior so cards no longer flash/flicker when moving over nested text.
-- Added a top toolbar with Check for Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode.
+- Added a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode.
+- Updated the toolbar update flow so it can install available GitHub updates with `git pull --ff-only`, block safely on local project changes, and offer to restart the Virtual Controller.
 - Removed deck-card hover event bindings entirely to eliminate the remaining Tkinter graphical glitch.
 - Added editable button names/labels saved per profile/control.
 - Added a GUI app picker so custom apps can be selected and mapped without editing JSON.

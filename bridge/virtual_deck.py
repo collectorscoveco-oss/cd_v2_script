@@ -240,7 +240,7 @@ class VirtualDeckApp:
         inner = tk.Frame(bar, bg="#0d1117")
         inner.pack(fill="x", padx=8, pady=6)
         tk.Label(inner, text="Toolbar", bg="#0d1117", fg="#94a3b8", font=("Segoe UI", 9, "bold")).pack(side="left", padx=(0, 10))
-        ttk.Button(inner, text="Check for Updates", style="Small.TButton", command=self.check_for_updates).pack(side="left", padx=4)
+        ttk.Button(inner, text="Check / Install Updates", style="Small.TButton", command=self.check_for_updates).pack(side="left", padx=4)
         ttk.Button(inner, text="Refresh Sonar", style="Small.TButton", command=self.refresh_sonar_status).pack(side="left", padx=4)
         ttk.Button(inner, text="Test Profile Sound", style="Small.TButton", command=self.test_profile_sound).pack(side="left", padx=4)
         ttk.Button(inner, text="Open Config Folder", style="Small.TButton", command=self.open_config_folder).pack(side="left", padx=4)
@@ -253,30 +253,98 @@ class VirtualDeckApp:
         self._log("Checking GitHub for SonarDeck updates...")
         threading.Thread(target=self._check_for_updates_worker, daemon=True).start()
 
+    def _run_git(self, args: list[str], timeout: int = 45) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["git", *args],
+            cwd=self.repo_root(),
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+
     def _check_for_updates_worker(self) -> None:
-        repo = self.repo_root()
         try:
-            subprocess.run(["git", "fetch", "--quiet"], cwd=repo, check=True, capture_output=True, text=True, timeout=45)
-            upstream = subprocess.run(["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], cwd=repo, check=False, capture_output=True, text=True, timeout=10)
+            self._run_git(["fetch", "--quiet"])
+            upstream = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+                cwd=self.repo_root(),
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
             if upstream.returncode != 0:
-                message = "Could not check updates because this branch has no upstream tracking branch."
+                result = {"status": "error", "message": "Could not check updates because this branch has no upstream tracking branch."}
             else:
-                counts = subprocess.run(["git", "rev-list", "--left-right", "--count", "HEAD...@{u}"], cwd=repo, check=True, capture_output=True, text=True, timeout=10)
+                counts = self._run_git(["rev-list", "--left-right", "--count", "HEAD...@{u}"], timeout=10)
                 ahead, behind = [int(x) for x in counts.stdout.strip().split()]
                 branch = upstream.stdout.strip()
                 if behind > 0:
-                    message = f"Update available: your copy is {behind} commit(s) behind {branch}. Close SonarDeck, then run git pull."
+                    result = {
+                        "status": "update_available",
+                        "message": f"Update available: your copy is {behind} commit(s) behind {branch}.",
+                        "branch": branch,
+                        "behind": behind,
+                        "ahead": ahead,
+                    }
                 elif ahead > 0:
-                    message = f"You are up to date with {branch}. You also have {ahead} local commit(s) not on GitHub."
+                    result = {"status": "ok", "message": f"You are up to date with {branch}. You also have {ahead} local commit(s) not on GitHub."}
                 else:
-                    message = f"You are up to date with {branch}."
+                    result = {"status": "ok", "message": f"You are up to date with {branch}."}
         except Exception as exc:
-            message = f"Update check failed: {exc}"
-        self.root.after(0, lambda: self._show_update_result(message))
+            result = {"status": "error", "message": f"Update check failed: {exc}"}
+        self.root.after(0, lambda: self._handle_update_check_result(result))
 
-    def _show_update_result(self, message: str) -> None:
+    def _handle_update_check_result(self, result: dict) -> None:
+        message = str(result.get("message", "Unknown update status."))
         self._log(message)
-        messagebox.showinfo("SonarDeck Updates", message)
+        if result.get("status") != "update_available":
+            messagebox.showinfo("SonarDeck Updates", message)
+            return
+        should_update = messagebox.askyesno(
+            "SonarDeck Updates",
+            message + "\n\nInstall the update now?\n\nThis runs: git pull --ff-only",
+        )
+        if should_update:
+            self.install_updates()
+
+    def install_updates(self) -> None:
+        self._log("Installing SonarDeck update...")
+        threading.Thread(target=self._install_updates_worker, daemon=True).start()
+
+    def _install_updates_worker(self) -> None:
+        try:
+            dirty = self._run_git(["status", "--porcelain"], timeout=10).stdout.strip()
+            if dirty:
+                message = "Update blocked because the project folder has local file changes. Commit/stash them or ask me to inspect them first."
+                result = {"status": "blocked", "message": message + "\n\n" + dirty[:1000]}
+            else:
+                pull = self._run_git(["pull", "--ff-only"], timeout=90)
+                message = "Update installed successfully. Restart SonarDeck to load the new code."
+                if pull.stdout.strip():
+                    message += "\n\n" + pull.stdout.strip()[-1500:]
+                result = {"status": "updated", "message": message}
+        except Exception as exc:
+            result = {"status": "error", "message": f"Update install failed: {exc}"}
+        self.root.after(0, lambda: self._handle_install_result(result))
+
+    def _handle_install_result(self, result: dict) -> None:
+        message = str(result.get("message", "Update finished."))
+        self._log(message.split("\n", 1)[0])
+        if result.get("status") == "updated":
+            restart = messagebox.askyesno("SonarDeck Updated", message + "\n\nRestart the Virtual Controller now?")
+            if restart:
+                self.restart_app()
+        else:
+            messagebox.showwarning("SonarDeck Updates", message)
+
+    def restart_app(self) -> None:
+        try:
+            subprocess.Popen([sys.executable, "-m", "bridge.virtual_deck"], cwd=self.repo_root())
+            self.root.destroy()
+        except Exception as exc:
+            messagebox.showwarning("SonarDeck", f"Could not restart automatically. Close and reopen SonarDeck manually.\n\n{exc}")
 
     def open_config_folder(self) -> None:
         folder = self.repo_root() / "bridge"
