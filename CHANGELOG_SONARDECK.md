@@ -16,6 +16,8 @@
 - Added `scripts/run_virtual_deck.bat` and `bridge.virtual_deck`, a GUI virtual controller for testing the final button/profile mappings before Arduino hardware arrives.
 - Expanded the virtual controller with live Sonar mixer bars, profile-colored pages, keyboard shortcuts, a button/profile editor, and profile-switch sound controls/test buttons.
 - Reworked the virtual deck buttons into polished Stream Deck-style cards with action category colors and an Edit Mapping Mode where clicking a deck button selects it for editing.
+- Smoothed virtual deck card hover behavior so cards no longer flash/flicker when moving over nested text.
+- Added a top toolbar with Check for Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode.
 - Added more default profiles: Gaming, Streaming, Music, and Desktop.
 - Expanded profile-switch audio modes: off, beep, profile-specific beeps, terminal bell, Windows system sound, WAV file, profile-specific WAV files, and Windows voice.
 - Updated the virtual controller so button/encoder labels refresh when the active profile/page changes.

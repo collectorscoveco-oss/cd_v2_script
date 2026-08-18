@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import logging
 import queue
+import subprocess
+import sys
 import threading
 import tkinter as tk
 from datetime import datetime
+from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from .actions.registry import ActionContext, ActionRegistry
@@ -167,7 +170,9 @@ class VirtualDeckApp:
             text="Software playground now; same event mappings later when the Arduino is plugged in.",
             style="Sub.TLabel",
             wraplength=900,
-        ).pack(anchor="w", pady=(4, 14))
+        ).pack(anchor="w", pady=(4, 10))
+
+        self._build_toolbar(outer)
 
         top = ttk.Frame(outer)
         top.pack(fill="x", pady=(0, 12))
@@ -225,6 +230,68 @@ class VirtualDeckApp:
         self.log_text.configure(yscrollcommand=scroll.set)
 
         self.update_profile_ui()
+
+    def _build_toolbar(self, parent: ttk.Frame) -> None:
+        bar = tk.Frame(parent, bg="#0d1117", highlightthickness=1, highlightbackground="#243041")
+        bar.pack(fill="x", pady=(0, 12))
+        inner = tk.Frame(bar, bg="#0d1117")
+        inner.pack(fill="x", padx=8, pady=6)
+        tk.Label(inner, text="Toolbar", bg="#0d1117", fg="#94a3b8", font=("Segoe UI", 9, "bold")).pack(side="left", padx=(0, 10))
+        ttk.Button(inner, text="Check for Updates", style="Small.TButton", command=self.check_for_updates).pack(side="left", padx=4)
+        ttk.Button(inner, text="Refresh Sonar", style="Small.TButton", command=self.refresh_sonar_status).pack(side="left", padx=4)
+        ttk.Button(inner, text="Test Profile Sound", style="Small.TButton", command=self.test_profile_sound).pack(side="left", padx=4)
+        ttk.Button(inner, text="Open Config Folder", style="Small.TButton", command=self.open_config_folder).pack(side="left", padx=4)
+        ttk.Checkbutton(inner, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).pack(side="right", padx=4)
+
+    def repo_root(self) -> Path:
+        return Path(__file__).resolve().parents[1]
+
+    def check_for_updates(self) -> None:
+        self._log("Checking GitHub for SonarDeck updates...")
+        threading.Thread(target=self._check_for_updates_worker, daemon=True).start()
+
+    def _check_for_updates_worker(self) -> None:
+        repo = self.repo_root()
+        try:
+            subprocess.run(["git", "fetch", "--quiet"], cwd=repo, check=True, capture_output=True, text=True, timeout=45)
+            upstream = subprocess.run(["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], cwd=repo, check=False, capture_output=True, text=True, timeout=10)
+            if upstream.returncode != 0:
+                message = "Could not check updates because this branch has no upstream tracking branch."
+            else:
+                counts = subprocess.run(["git", "rev-list", "--left-right", "--count", "HEAD...@{u}"], cwd=repo, check=True, capture_output=True, text=True, timeout=10)
+                ahead, behind = [int(x) for x in counts.stdout.strip().split()]
+                branch = upstream.stdout.strip()
+                if behind > 0:
+                    message = f"Update available: your copy is {behind} commit(s) behind {branch}. Close SonarDeck, then run git pull."
+                elif ahead > 0:
+                    message = f"You are up to date with {branch}. You also have {ahead} local commit(s) not on GitHub."
+                else:
+                    message = f"You are up to date with {branch}."
+        except Exception as exc:
+            message = f"Update check failed: {exc}"
+        self.root.after(0, lambda: self._show_update_result(message))
+
+    def _show_update_result(self, message: str) -> None:
+        self._log(message)
+        messagebox.showinfo("SonarDeck Updates", message)
+
+    def open_config_folder(self) -> None:
+        folder = self.repo_root() / "bridge"
+        try:
+            if sys.platform.startswith("win"):
+                subprocess.Popen(["explorer", str(folder)])
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", str(folder)])
+            else:
+                subprocess.Popen(["xdg-open", str(folder)])
+            self._log(f"Opened config folder: {folder}")
+        except Exception as exc:
+            self._log(f"Could not open config folder: {exc}")
+            messagebox.showwarning("SonarDeck", f"Could not open config folder.
+
+{folder}
+
+{exc}")
 
     def _create_deck_card(self, parent: ttk.LabelFrame, event: str, index: int) -> None:
         outer = tk.Frame(parent, bg="#0b0f17", highlightthickness=1, highlightbackground="#2d3748", bd=0)
@@ -285,21 +352,18 @@ class VirtualDeckApp:
         self.fire_event(event)
 
     def set_deck_card_hover(self, event: str, hover: bool) -> None:
+        # Keep hover deliberately subtle. Earlier versions changed several nested
+        # widget colors on every enter/leave event, which looked flickery/weird
+        # when moving across text inside the same card. Now hover only changes
+        # the pointer and leaves the card visual stable.
         if event not in self.deck_buttons:
             return
-        widgets = self.deck_buttons[event]
-        action = self.profiles.action_for_event(event)
-        category = self.action_category(action)
-        accent = CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"])
-        bg = "#172033" if hover else "#111827"
-        if self.edit_mode_var.get() and event == self.selected_card_event:
-            bg = "#1e293b"
-        widgets["body"].configure(bg=bg)
-        widgets["top"].configure(bg=bg)
-        widgets["number"].configure(bg=bg)
-        widgets["label"].configure(bg=bg)
-        widgets["hint"].configure(bg=bg)
-        widgets["outer"].configure(highlightbackground=accent if hover or event == self.selected_card_event else "#2d3748")
+        cursor = "hand2" if hover else ""
+        for widget in self.deck_buttons[event].values():
+            try:
+                widget.configure(cursor=cursor)
+            except tk.TclError:
+                pass
 
     def update_deck_card(self, event: str, index: int, action: str | None) -> None:
         widgets = self.deck_buttons[event]
