@@ -57,4 +57,18 @@ Run this first on the Windows machine with SteelSeries GG/Sonar open:
 scripts\sonar_probe.bat
 ```
 
+A good probe shows `api_base: http://127.0.0.1:<sonar-port>` and `[OK]` for `/mode` plus `/volumeSettings/classic` or `/volumeSettings/streamer`.
+
+Then run the read-only control parser test:
+
+```bat
+scripts\sonar_control_test.bat
+```
+
+If that prints the current media volume/mute state, optionally run a safe apply test that changes media volume briefly and restores it:
+
+```bat
+scripts\sonar_control_test.bat --apply
+```
+
 Paste the output back if it cannot find or read Sonar. SteelSeries GG endpoints can change, so the Sonar module is isolated for quick fixes.

@@ -196,49 +196,62 @@ class SonarClient:
             raise RuntimeError(f"Could not find current Sonar volume for {channel}. Probe output needed.")
         return self.set_channel_volume(channel, current_volume + delta)
 
-    def _extract_volume(self, settings, channel_id: str) -> float | None:
+    def _find_nested_key(self, value, keys: tuple[str, ...]):
+        if isinstance(value, dict):
+            for key in keys:
+                if key in value:
+                    return value[key]
+            # Prefer classic/monitoring branch when present so Streamer shapes are stable.
+            preferred = ["classic", "monitoring", "stream", "streaming"]
+            for key in preferred:
+                if key in value:
+                    found = self._find_nested_key(value[key], keys)
+                    if found is not None:
+                        return found
+            for child in value.values():
+                found = self._find_nested_key(child, keys)
+                if found is not None:
+                    return found
+        elif isinstance(value, list):
+            for child in value:
+                found = self._find_nested_key(child, keys)
+                if found is not None:
+                    return found
+        return None
+
+    def _extract_channel_object(self, settings, channel_id: str):
         if isinstance(settings, dict):
-            # Try common shapes defensively.
+            devices = settings.get("devices")
+            if isinstance(devices, dict) and channel_id in devices:
+                return devices[channel_id]
             for key, value in settings.items():
                 if str(key).lower() == str(channel_id).lower():
-                    if isinstance(value, dict):
-                        for volume_key in ("volume", "Volume", "level"):
-                            if volume_key in value:
-                                return float(value[volume_key])
-                    if isinstance(value, (int, float)):
-                        return float(value)
-            for value in settings.values():
-                found = self._extract_volume(value, channel_id)
+                    return value
+                found = self._extract_channel_object(value, channel_id)
                 if found is not None:
                     return found
         elif isinstance(settings, list):
             for item in settings:
                 if isinstance(item, dict) and str(item.get("channel") or item.get("id") or item.get("name", "")).lower() == str(channel_id).lower():
-                    for volume_key in ("volume", "Volume", "level"):
-                        if volume_key in item:
-                            return float(item[volume_key])
-                found = self._extract_volume(item, channel_id)
+                    return item
+                found = self._extract_channel_object(item, channel_id)
                 if found is not None:
                     return found
         return None
 
+    def _extract_volume(self, settings, channel_id: str) -> float | None:
+        channel_obj = self._extract_channel_object(settings, channel_id)
+        if channel_obj is None:
+            return None
+        found = self._find_nested_key(channel_obj, ("volume", "Volume", "level"))
+        return float(found) if isinstance(found, (int, float)) else None
+
     def _extract_muted(self, settings, channel_id: str) -> bool | None:
-        if isinstance(settings, dict):
-            for key, value in settings.items():
-                if str(key).lower() == str(channel_id).lower():
-                    if isinstance(value, dict):
-                        for mute_key in ("muted", "isMuted", "Mute"):
-                            if mute_key in value:
-                                return bool(value[mute_key])
-                found = self._extract_muted(value, channel_id)
-                if found is not None:
-                    return found
-        elif isinstance(settings, list):
-            for item in settings:
-                found = self._extract_muted(item, channel_id)
-                if found is not None:
-                    return found
-        return None
+        channel_obj = self._extract_channel_object(settings, channel_id)
+        if channel_obj is None:
+            return None
+        found = self._find_nested_key(channel_obj, ("muted", "isMuted", "Mute"))
+        return bool(found) if found is not None else None
 
     def volume_up(self, channel: str):
         return self.adjust_channel(channel, self.step)

@@ -36,7 +36,21 @@ With SteelSeries GG/Sonar running:
 scripts\sonar_probe.bat
 ```
 
-If the probe fails, paste the output back. SteelSeries GG's local API endpoints can change by version, so the Sonar module is intentionally isolated for fast adjustment.
+A good probe shows `api_base: http://127.0.0.1:<sonar-port>` and `[OK]` for `/mode` plus `/volumeSettings/classic` or `/volumeSettings/streamer`.
+
+Then run the read-only parser test:
+
+```bat
+scripts\sonar_control_test.bat
+```
+
+Optional safe apply test, which changes the media channel volume briefly and restores it:
+
+```bat
+scripts\sonar_control_test.bat --apply
+```
+
+If the probe or control test fails, paste the output back. SteelSeries GG's local API endpoints can change by version, so the Sonar module is intentionally isolated for fast adjustment.
 
 ## Profile switching
 
