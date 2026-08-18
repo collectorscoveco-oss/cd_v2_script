@@ -36,6 +36,8 @@ That starts:
 - Manual remapping in the Mapping tab: right-click a card, choose an action from the dropdown, then Save Action + Name
 - Manual `.exe` app action creation in the Mapping tab: paste a full Windows `.exe` path, add it to the action list, and optionally assign it directly to the selected button
 - Direct Windows `.exe` launching for pasted paths, including Spotify paths under `AppData\Roaming\Spotify`
+- App/protocol shortcuts like `spotify:` are categorized as App buttons instead of Website buttons, and existing App/Website action targets can be edited from Button Setup
+- Simplified Button Setup modes: Use existing action, Open an `.exe`, or Open website/protocol
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps

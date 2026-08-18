@@ -13,7 +13,7 @@ type DeckButton = {
 }
 
 type Profile = { key: string; name: string }
-type Action = { id: string; label: string; category: string }
+type Action = { id: string; label: string; category: string; target?: string; editableTarget?: boolean }
 type State = {
   profile: { key: string; name: string; theme: { accent: string; panel: string } }
   profiles: Profile[]
@@ -51,6 +51,8 @@ function App() {
   const [appKey, setAppKey] = useState('')
   const [appPath, setAppPath] = useState('')
   const [appLabel, setAppLabel] = useState('')
+  const [targetDraft, setTargetDraft] = useState('')
+  const [setupMode, setSetupMode] = useState<'existing' | 'exe' | 'website'>('existing')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
   const longPressTimer = useRef<number | null>(null)
@@ -77,6 +79,7 @@ function App() {
   useEffect(() => {
     setLabelDraft(selected?.label ?? '')
     setActionDraft(selected?.action ?? '')
+    setSetupMode('existing')
   }, [selected?.event, selected?.action])
 
   const accent = state?.profile.theme.accent ?? '#32d3ff'
@@ -88,6 +91,11 @@ function App() {
     }
     return groups
   }, [state])
+  const currentAction = useMemo(() => state?.actions.find((action) => action.id === actionDraft), [state, actionDraft])
+
+  useEffect(() => {
+    setTargetDraft(currentAction?.target ?? '')
+  }, [currentAction?.id, currentAction?.target])
 
   async function fire(event: string) {
     try {
@@ -178,11 +186,34 @@ function App() {
         command: appPath,
         profile: assignToSelected && selected ? state.profile.key : '',
         event: assignToSelected && selected ? selected.event : '',
+        kind: setupMode === 'website' ? 'open' : 'launch',
       }),
     })
     setState(next)
     if (selected) setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
-    setActionDraft(`app.launch.${key.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')}`)
+    const cleanKey = key.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    setActionDraft(`app.${setupMode === 'website' ? 'open' : 'launch'}.${cleanKey}`)
+  }
+
+  async function saveCurrentActionTarget() {
+    if (!currentAction?.editableTarget) return
+    const next = await api<State>('/action-target', {
+      method: 'POST',
+      body: JSON.stringify({ action: currentAction.id, target: targetDraft }),
+    })
+    setState(next)
+  }
+
+  async function quickAssign(action: string, label: string) {
+    if (!state || !selected) return
+    setActionDraft(action)
+    setLabelDraft(label)
+    const next = await api<State>('/mapping', {
+      method: 'POST',
+      body: JSON.stringify({ profile: state.profile.key, event: selected.event, action, label }),
+    })
+    setState(next)
+    setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
   }
 
   return (
@@ -256,37 +287,75 @@ function App() {
           <aside className="inspector">
             {tab === 'mapping' && (
               <>
-                <div className="sectionTitle"><h3>Manual Button Remap</h3><span>Pick a deck button, choose the action, and save.</span></div>
+                <div className="sectionTitle"><h3>Button Setup</h3><span>One place to fix app, website, media, and Sonar buttons.</span></div>
                 {selected ? (
                   <div className="formStack">
-                    <label>Selected control</label>
-                    <div className="readOnly">{selected.event}</div>
-                    <label>Button action</label>
-                    <select value={actionDraft} onChange={(e) => setActionDraft(e.target.value)}>
-                      <option value="">Unmapped / Do nothing</option>
-                      {state?.actions.map((action) => (
-                        <option key={action.id} value={action.id}>{action.category} — {action.label} ({action.id})</option>
-                      ))}
-                    </select>
-                    <label>Display name</label>
-                    <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} placeholder="Example: Spotify" />
-                    <button className="primary" onClick={saveMapping}><Save size={16} /> Save Action + Name</button>
+                    <label>Selected button</label>
+                    <div className="readOnly"><b>{selected.event}</b> · currently {selected.category} / {selected.label}</div>
+
+                    <div className="modeGrid">
+                      <button className={setupMode === 'existing' ? 'mode active' : 'mode'} onClick={() => setSetupMode('existing')}>Use existing action</button>
+                      <button className={setupMode === 'exe' ? 'mode active' : 'mode'} onClick={() => setSetupMode('exe')}>Open an .exe</button>
+                      <button className={setupMode === 'website' ? 'mode active' : 'mode'} onClick={() => setSetupMode('website')}>Open website/protocol</button>
+                    </div>
+
+                    <div className="quickRow">
+                      <button className="ghost" onClick={() => quickAssign('media.play_pause', 'Play/Pause')}>Set Play/Pause</button>
+                      <button className="ghost" onClick={() => quickAssign('app.open.spotify', 'Spotify')}>Set Spotify</button>
+                    </div>
+
+                    {setupMode === 'existing' && (
+                      <>
+                        <label>Action</label>
+                        <select value={actionDraft} onChange={(e) => setActionDraft(e.target.value)}>
+                          <option value="">Unmapped / Do nothing</option>
+                          {state?.actions.map((action) => (
+                            <option key={action.id} value={action.id}>{action.category} — {action.label} ({action.id})</option>
+                          ))}
+                        </select>
+                        {currentAction?.editableTarget && (
+                          <div className="editTargetBox">
+                            <label>{currentAction.category === 'Website' ? 'URL / protocol' : 'App path / command'}</label>
+                            <input value={targetDraft} onChange={(e) => setTargetDraft(e.target.value)} />
+                            <button className="ghost" onClick={saveCurrentActionTarget}>Save This Action Path/URL</button>
+                          </div>
+                        )}
+                        <label>Button name</label>
+                        <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} placeholder="Example: Spotify" />
+                        <button className="primary" onClick={saveMapping}><Save size={16} /> Save Button</button>
+                      </>
+                    )}
+
+                    {setupMode === 'exe' && (
+                      <>
+                        <label>Button name</label>
+                        <input value={appLabel} onChange={(e) => setAppLabel(e.target.value)} placeholder="Example: Spotify" />
+                        <label>Short action key</label>
+                        <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="Example: spotify" />
+                        <label>Full .exe path</label>
+                        <input value={appPath} onChange={(e) => setAppPath(e.target.value)} placeholder={'C:\\Users\\crsma\\AppData\\Roaming\\Spotify\\Spotify.exe'} />
+                        <button className="primary" onClick={() => addManualAppAction(true)}>Create App Button</button>
+                      </>
+                    )}
+
+                    {setupMode === 'website' && (
+                      <>
+                        <label>Button name</label>
+                        <input value={appLabel} onChange={(e) => setAppLabel(e.target.value)} placeholder="Example: Spotify" />
+                        <label>Short action key</label>
+                        <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="Example: spotify" />
+                        <label>Website URL or app protocol</label>
+                        <input value={appPath} onChange={(e) => setAppPath(e.target.value)} placeholder="https://youtube.com or spotify:" />
+                        <button className="primary" onClick={() => addManualAppAction(true)}>Create Shortcut Button</button>
+                        <div className="hintBox smallHint">Note: app protocols like spotify: are shown as App buttons now, not Website buttons.</div>
+                      </>
+                    )}
+
                     <button className="ghost" onClick={saveLabel}>Save Name Only</button>
                     <button className="ghost" onClick={clearMapping}>Clear Button Mapping</button>
-                    <div className="divider" />
-                    <strong className="miniHeading">Add EXE manually</strong>
-                    <label>Action name</label>
-                    <input value={appLabel} onChange={(e) => setAppLabel(e.target.value)} placeholder="Example: Spotify" />
-                    <label>Action key</label>
-                    <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="Example: spotify" />
-                    <label>Full .exe path</label>
-                    <input value={appPath} onChange={(e) => setAppPath(e.target.value)} placeholder={'Example: C:\\Users\\crsma\\AppData\\Roaming\\Spotify\\Spotify.exe'} />
-                    <button className="primary" onClick={() => addManualAppAction(true)}>Add EXE + Assign to Selected Button</button>
-                    <button className="ghost" onClick={() => addManualAppAction(false)}>Add EXE to Action List Only</button>
-                    <div className="hintBox smallHint">Browser apps cannot reliably browse real Windows paths yet, so paste the full path here. You can right-click a Start Menu shortcut, open file location, then copy the target path.</div>
                   </div>
                 ) : (
-                  <div className="empty">Right-click a deck button to select it for remapping. Button 10 can also be remapped here.</div>
+                  <div className="empty">Right-click a deck button to open the simple Button Setup panel.</div>
                 )}
               </>
             )}

@@ -75,7 +75,19 @@ ACTION_LABELS = {
 }
 
 
-def action_category(action: str | None) -> str:
+def action_target(config: dict, action: str | None) -> str:
+    if not action:
+        return ""
+    if action.startswith("app.launch."):
+        key = action.split(".", 2)[2]
+        return str(config.get("actions", {}).get("app", {}).get("launch", {}).get(key, ""))
+    if action.startswith("app.open."):
+        key = action.split(".", 2)[2]
+        return str(config.get("actions", {}).get("app", {}).get("open", {}).get(key, ""))
+    return ""
+
+
+def action_category(action: str | None, config: dict | None = None) -> str:
     if not action:
         return "Other"
     if action.startswith("sonar."):
@@ -85,6 +97,9 @@ def action_category(action: str | None) -> str:
     if action.startswith("media."):
         return "Media"
     if action.startswith("app.open."):
+        target = action_target(config or {}, action).lower()
+        if target.endswith(":") and not target.startswith(("http:", "https:")):
+            return "App"
         return "Website"
     if action.startswith("app."):
         return "App"
@@ -116,7 +131,13 @@ def available_actions(config: dict) -> list[dict]:
     for key in config.get("actions", {}).get("hotkey", {}):
         actions.add(f"hotkey.{key}")
     return [
-        {"id": action, "label": action_label(action), "category": action_category(action)}
+        {
+            "id": action,
+            "label": action_label(action),
+            "category": action_category(action, config),
+            "target": action_target(config, action),
+            "editableTarget": action.startswith(("app.launch.", "app.open.")),
+        }
         for action in sorted(actions)
     ]
 
@@ -149,7 +170,7 @@ class SonarDeckApiState:
         buttons = []
         for idx, event in enumerate(BUTTON_EVENTS, start=1):
             action = events.get(event)
-            category = action_category(action)
+            category = action_category(action, self.config)
             buttons.append(
                 {
                     "index": idx,
@@ -228,19 +249,20 @@ class SonarDeckApiState:
             self.append_log(f"Saved mapping: {profile} {event} -> {action or '(unmapped)'}")
             return self.snapshot()
 
-    def add_app_action(self, key: str, label: str, command: str, profile: str = "", event: str = "") -> dict:
+    def add_app_action(self, key: str, label: str, command: str, profile: str = "", event: str = "", kind: str = "launch") -> dict:
         with self.lock:
             clean_key = "".join(ch if ch.isalnum() else "_" for ch in key.strip().lower()).strip("_")
             if not clean_key:
                 raise ValueError("Action key is required, for example: spotify or discord")
             clean_command = command.strip().strip('"')
             if not clean_command:
-                raise ValueError("EXE/app path is required")
+                raise ValueError("App path, URL, or protocol is required")
             actions = self.config.setdefault("actions", {})
             app_actions = actions.setdefault("app", {})
-            launch_actions = app_actions.setdefault("launch", {})
-            launch_actions[clean_key] = clean_command
-            action_id = f"app.launch.{clean_key}"
+            is_open = kind == "open" or clean_command.startswith(("http://", "https://")) or (clean_command.endswith(":") and ":\\" not in clean_command)
+            bucket = "open" if is_open else "launch"
+            app_actions.setdefault(bucket, {})[clean_key] = clean_command
+            action_id = f"app.{bucket}.{clean_key}"
             if profile and event:
                 item = self.config["profiles"]["items"].setdefault(profile, {})
                 item.setdefault("events", {})[event] = action_id
@@ -251,6 +273,24 @@ class SonarDeckApiState:
             if profile:
                 self.profiles.current_key = profile
             self.append_log(f"Added app action: {action_id} -> {clean_command}")
+            return self.snapshot()
+
+    def update_action_target(self, action: str, target: str) -> dict:
+        with self.lock:
+            clean_target = target.strip().strip('"')
+            if action.startswith("app.launch."):
+                key = action.split(".", 2)[2]
+                self.config.setdefault("actions", {}).setdefault("app", {}).setdefault("launch", {})[key] = clean_target
+            elif action.startswith("app.open."):
+                key = action.split(".", 2)[2]
+                self.config.setdefault("actions", {}).setdefault("app", {}).setdefault("open", {})[key] = clean_target
+            else:
+                raise ValueError("Only App/Website action targets are editable")
+            save_config(self.config, self.config_path)
+            current = str(self.profiles.current_key)
+            self.reload()
+            self.profiles.current_key = current
+            self.append_log(f"Updated action target: {action} -> {clean_target}")
             return self.snapshot()
 
 
@@ -309,6 +349,12 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                     str(payload.get("command", "")),
                     str(payload.get("profile", "")),
                     str(payload.get("event", "")),
+                    str(payload.get("kind", "launch")),
+                )
+            elif parsed.path == "/api/action-target":
+                state = self.server.state.update_action_target(
+                    str(payload.get("action", "")),
+                    str(payload.get("target", "")),
                 )
             else:
                 self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
