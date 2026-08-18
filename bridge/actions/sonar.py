@@ -46,16 +46,33 @@ class SonarClient:
             for key in ("ggEncryptedAddress", "address", "apiAddress", "ggAddress"):
                 value = data.get(key)
                 if value:
-                    value = str(value).rstrip("/")
+                    value = self.normalize_api_base(str(value))
                     LOG.info("Discovered SteelSeries API from %s key %s: %s", path, key, value)
                     return value
         LOG.warning("Could not auto-discover SteelSeries GG API base. Set actions.sonar.api_base in config.json after probing.")
         return None
 
+    @staticmethod
+    def normalize_api_base(value: str | None) -> str | None:
+        if not value:
+            return None
+        value = str(value).strip().rstrip("/")
+        if not value:
+            return None
+        # SteelSeries coreProps.json commonly stores just "127.0.0.1:<port>".
+        # urllib needs a real URL scheme.
+        if "://" not in value:
+            value = "http://" + value
+        return value
+
     def request(self, method: str, path: str, payload: dict | None = None):
         if not self.api_base:
             raise RuntimeError("SteelSeries GG API base not found. Is SteelSeries GG/Sonar running?")
-        url = self.api_base.rstrip("/") + path
+        normalized_base = self.normalize_api_base(self.api_base)
+        if not normalized_base:
+            raise RuntimeError("SteelSeries GG API base not found. Is SteelSeries GG/Sonar running?")
+        self.api_base = normalized_base
+        url = normalized_base.rstrip("/") + path
         body = json.dumps(payload).encode("utf-8") if payload is not None else None
         req = urllib.request.Request(url, data=body, method=method.upper())
         req.add_header("Content-Type", "application/json")
