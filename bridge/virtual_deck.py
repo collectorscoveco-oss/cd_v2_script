@@ -62,6 +62,16 @@ THEMES = {
     "desktop": {"accent": "#94a3b8", "panel": "#222833"},
 }
 
+CATEGORY_COLORS = {
+    "Sonar": "#32d3ff",
+    "Windows": "#94a3b8",
+    "Media": "#22c55e",
+    "App": "#ff9f43",
+    "Hotkey": "#8b5cf6",
+    "Profile": "#facc15",
+    "Other": "#64748b",
+}
+
 SOUND_MODES = ["off", "beep", "profile_beeps", "terminal_bell", "system", "file", "profile_files", "voice"]
 
 
@@ -112,8 +122,10 @@ class VirtualDeckApp:
         self.selected_profile_var = tk.StringVar(value=self.profiles.current_key)
         self.selected_event_var = tk.StringVar(value="BTN_01_PRESS")
         self.selected_action_var = tk.StringVar(value="")
+        self.edit_mode_var = tk.BooleanVar(value=False)
+        self.selected_card_event = "BTN_01_PRESS"
 
-        self.deck_buttons: dict[str, ttk.Button] = {}
+        self.deck_buttons: dict[str, dict[str, tk.Widget]] = {}
         self.encoder_buttons: dict[str, ttk.Button] = {}
         self.mixer_bars: dict[str, ttk.Progressbar] = {}
         self.mixer_labels: dict[str, tk.StringVar] = {}
@@ -185,9 +197,7 @@ class VirtualDeckApp:
         grid_frame = ttk.LabelFrame(deck_col, text="Virtual deck buttons")
         grid_frame.pack(fill="x", pady=(0, 14))
         for i, event in enumerate(BUTTON_EVENTS):
-            btn = ttk.Button(grid_frame, text="", style="Deck.TButton", command=lambda e=event: self.fire_event(e))
-            btn.grid(row=i // 3, column=i % 3, padx=8, pady=8, sticky="nsew", ipadx=28, ipady=18)
-            self.deck_buttons[event] = btn
+            self._create_deck_card(grid_frame, event, i)
         for col in range(3):
             grid_frame.columnconfigure(col, weight=1)
 
@@ -215,6 +225,101 @@ class VirtualDeckApp:
         self.log_text.configure(yscrollcommand=scroll.set)
 
         self.update_profile_ui()
+
+    def _create_deck_card(self, parent: ttk.LabelFrame, event: str, index: int) -> None:
+        outer = tk.Frame(parent, bg="#0b0f17", highlightthickness=1, highlightbackground="#2d3748", bd=0)
+        outer.grid(row=index // 3, column=index % 3, padx=8, pady=8, sticky="nsew", ipadx=0, ipady=0)
+        outer.configure(width=150, height=118)
+        outer.grid_propagate(False)
+
+        stripe = tk.Frame(outer, bg="#32d3ff", width=5)
+        stripe.pack(side="left", fill="y")
+        body = tk.Frame(outer, bg="#111827")
+        body.pack(side="left", fill="both", expand=True)
+
+        top = tk.Frame(body, bg="#111827")
+        top.pack(fill="x", padx=10, pady=(8, 0))
+        number = tk.Label(top, text=str(index + 1), bg="#111827", fg="#94a3b8", font=("Segoe UI", 9, "bold"))
+        number.pack(side="left")
+        category = tk.Label(top, text="", bg="#1f2937", fg="#e5e7eb", font=("Segoe UI", 7, "bold"), padx=6, pady=1)
+        category.pack(side="right")
+
+        label = tk.Label(body, text="", bg="#111827", fg="#f8fafc", font=("Segoe UI", 13, "bold"), wraplength=118, justify="center")
+        label.pack(fill="both", expand=True, padx=8, pady=(4, 0))
+        hint = tk.Label(body, text="", bg="#111827", fg="#64748b", font=("Segoe UI", 8))
+        hint.pack(fill="x", padx=8, pady=(0, 8))
+
+        widgets = {"outer": outer, "stripe": stripe, "body": body, "top": top, "number": number, "category": category, "label": label, "hint": hint}
+        self.deck_buttons[event] = widgets
+        for widget in widgets.values():
+            widget.bind("<Button-1>", lambda _e, ev=event: self.handle_deck_card_click(ev))
+            widget.bind("<Enter>", lambda _e, ev=event: self.set_deck_card_hover(ev, True))
+            widget.bind("<Leave>", lambda _e, ev=event: self.set_deck_card_hover(ev, False))
+
+    def action_category(self, action: str | None) -> str:
+        if not action:
+            return "Other"
+        if action.startswith("sonar."):
+            return "Sonar"
+        if action.startswith("windows."):
+            return "Windows"
+        if action.startswith("media."):
+            return "Media"
+        if action.startswith("app."):
+            return "App"
+        if action.startswith("hotkey."):
+            return "Hotkey"
+        if action.startswith("profile."):
+            return "Profile"
+        return "Other"
+
+    def handle_deck_card_click(self, event: str) -> None:
+        if self.edit_mode_var.get():
+            self.selected_card_event = event
+            self.selected_profile_var.set(str(self.profiles.current_key))
+            self.selected_event_var.set(event)
+            self.load_editor_action()
+            self.update_profile_ui()
+            self._log(f"Editing {self.profiles.current_name} / {event}")
+            return
+        self.fire_event(event)
+
+    def set_deck_card_hover(self, event: str, hover: bool) -> None:
+        if event not in self.deck_buttons:
+            return
+        widgets = self.deck_buttons[event]
+        action = self.profiles.action_for_event(event)
+        category = self.action_category(action)
+        accent = CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"])
+        bg = "#172033" if hover else "#111827"
+        if self.edit_mode_var.get() and event == self.selected_card_event:
+            bg = "#1e293b"
+        widgets["body"].configure(bg=bg)
+        widgets["top"].configure(bg=bg)
+        widgets["number"].configure(bg=bg)
+        widgets["label"].configure(bg=bg)
+        widgets["hint"].configure(bg=bg)
+        widgets["outer"].configure(highlightbackground=accent if hover or event == self.selected_card_event else "#2d3748")
+
+    def update_deck_card(self, event: str, index: int, action: str | None) -> None:
+        widgets = self.deck_buttons[event]
+        label = self.action_label(action)
+        category = self.action_category(action)
+        accent = CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"])
+        selected = self.edit_mode_var.get() and event == self.selected_card_event
+        bg = "#1e293b" if selected else "#111827"
+        border = accent if selected else "#334155"
+        hint = "✎ Click to edit" if self.edit_mode_var.get() else event.replace("_PRESS", "")
+        if selected:
+            hint = "Selected for edit"
+        widgets["stripe"].configure(bg=accent)
+        widgets["outer"].configure(highlightbackground=border, highlightthickness=2 if selected else 1)
+        widgets["body"].configure(bg=bg)
+        widgets["top"].configure(bg=bg)
+        widgets["number"].configure(text=str(index), bg=bg, fg=accent)
+        widgets["category"].configure(text=category.upper(), bg=accent, fg="#0b0f17")
+        widgets["label"].configure(text=label, bg=bg)
+        widgets["hint"].configure(text=hint, bg=bg, fg="#facc15" if selected else "#64748b")
 
     def _build_sound_panel(self, parent: ttk.Frame) -> None:
         frame = ttk.LabelFrame(parent, text="Profile switch audio")
@@ -246,9 +351,11 @@ class VirtualDeckApp:
         self.action_combo = ttk.Combobox(frame, values=available_actions(self.config), textvariable=self.selected_action_var)
         self.action_combo.grid(row=2, column=1, sticky="ew", padx=8, pady=6)
 
-        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=3, column=0, padx=8, pady=8, sticky="ew")
-        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=3, column=1, padx=8, pady=8, sticky="ew")
-        ttk.Label(frame, text="Tip: F1-F9 trigger buttons 1-9 while this window is focused.", style="Sub.TLabel", wraplength=360).grid(row=4, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
+        ttk.Checkbutton(frame, text="Edit Mapping Mode", variable=self.edit_mode_var, command=self.update_profile_ui).grid(row=3, column=0, columnspan=2, padx=8, pady=8, sticky="ew")
+        ttk.Button(frame, text="Save Mapping", command=self.save_mapping).grid(row=4, column=0, padx=8, pady=6, sticky="ew")
+        ttk.Button(frame, text="Test Selected Action", command=self.test_selected_mapping).grid(row=4, column=1, padx=8, pady=6, sticky="ew")
+        ttk.Button(frame, text="Switch To Selected Profile", command=self.switch_to_selected_profile).grid(row=5, column=0, columnspan=2, padx=8, pady=6, sticky="ew")
+        ttk.Label(frame, text="Normal: deck buttons run actions. Edit Mapping Mode: clicking a deck button selects it for editing. F1-F9 still trigger buttons while focused.", style="Sub.TLabel", wraplength=360).grid(row=6, column=0, columnspan=2, sticky="ew", padx=8, pady=(0, 8))
         frame.columnconfigure(1, weight=1)
         self.load_editor_action()
 
@@ -307,6 +414,23 @@ class VirtualDeckApp:
         save_config(self.config, self.config_path)
         self.update_profile_ui()
         self._log(f"Saved mapping: {profile} {event} -> {action}")
+
+    def test_selected_mapping(self) -> None:
+        profile = self.selected_profile_var.get()
+        event = self.selected_event_var.get()
+        action = self.config["profiles"]["items"].get(profile, {}).get("events", {}).get(event)
+        if not action:
+            messagebox.showwarning("SonarDeck", "Selected control has no mapped action to test.")
+            return
+        self._log(f"Testing selected mapping: {profile} / {event} -> {action}")
+        threading.Thread(target=self._test_action_worker, args=(action,), daemon=True).start()
+
+    def _test_action_worker(self, action: str) -> None:
+        try:
+            self.registry.execute(action)
+        except Exception as exc:
+            self._log(f"Test action failed: {exc}")
+        self.root.after(0, self._after_action)
 
     def switch_to_selected_profile(self) -> None:
         profile = self.selected_profile_var.get()
