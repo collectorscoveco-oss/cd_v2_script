@@ -21,13 +21,30 @@ This branch turns the free Console Deck V2 project into a no-screen SonarDeck pr
 - `ENC_01_PRESS`
 - `SONARDECK_READY` on boot
 
-## First Windows setup
+## First setup on Windows
 
 ```bat
 scripts\setup_windows.bat
 copy bridge\config.example.json bridge\config.json
 scripts\run_bridge.bat
 ```
+
+If you already had an older `bridge\config.json`, overwrite it after pulling new defaults:
+
+```bat
+copy /Y bridge\config.example.json bridge\config.json
+```
+
+## Test mapped events without Arduino
+
+You can simulate hardware events before the controller is wired:
+
+```bat
+scripts\simulate_event.bat BTN_05_PRESS
+scripts\simulate_event.bat BTN_08_LONG
+```
+
+`BTN_05_PRESS` should raise Sonar media volume. `BTN_08_LONG` should switch profile/page and play the configured beep/sound.
 
 ## Custom profile/page sound
 

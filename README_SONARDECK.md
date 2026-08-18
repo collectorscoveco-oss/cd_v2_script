@@ -28,6 +28,19 @@ copy bridge\config.example.json bridge\config.json
 scripts\run_bridge.bat
 ```
 
+If you already had an older `bridge\config.json`, overwrite it after pulling new defaults:
+
+```bat
+copy /Y bridge\config.example.json bridge\config.json
+```
+
+You can test mapped events before the Arduino is wired:
+
+```bat
+scripts\simulate_event.bat BTN_05_PRESS
+scripts\simulate_event.bat BTN_08_LONG
+```
+
 ## Sonar probe
 
 With SteelSeries GG/Sonar running:

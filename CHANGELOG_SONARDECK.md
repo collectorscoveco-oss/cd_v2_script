@@ -12,3 +12,5 @@
 - Updated Sonar API discovery to use the Sonar subapp `webServerAddress` from SteelSeries Engine `/subApps`.
 - Updated volume/mute extraction for nested `/volumeSettings/classic` and streamer shapes.
 - Added Windows setup/run scripts and V1 docs.
+- Added `scripts/simulate_event.bat` for testing mapped actions without Arduino hardware.
+- Changed the default V1 `BTN_08_PRESS` mapping to media play/pause so the default config has no unimplemented output-rotation action; `BTN_08_LONG` remains profile/page switch.

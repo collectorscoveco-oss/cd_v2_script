@@ -24,9 +24,9 @@
           "BTN_05_PRESS": "sonar.media.volume_up",
           "BTN_06_PRESS": "sonar.media.volume_down",
           "BTN_07_PRESS": "sonar.mic.toggle_mute",
-          "BTN_08_PRESS": "sonar.output.rotate",
+          "BTN_08_PRESS": "media.play_pause",
           "BTN_08_LONG": "profile.next",
-          "BTN_09_PRESS": "media.play_pause",
+          "BTN_09_PRESS": "windows.mute",
           "ENC_01_CW": "windows.volume_up",
           "ENC_01_CCW": "windows.volume_down",
           "ENC_01_PRESS": "windows.mute"
