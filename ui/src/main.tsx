@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Activity, Gamepad2, RefreshCcw, Save, Settings, Sparkles, Volume2, Zap } from 'lucide-react'
+import { Activity, Gamepad2, RefreshCcw, Save, Settings } from 'lucide-react'
 import { createRoot } from 'react-dom/client'
+import { ActionIcon } from './actionIcons'
 import './styles.css'
 
 type DeckButton = {
@@ -34,13 +35,6 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const data = await res.json()
   if (!data.ok) throw new Error(data.error || 'SonarDeck API error')
   return data.state ?? data
-}
-
-function categoryIcon(category: string) {
-  if (category === 'Sonar') return <Volume2 size={18} />
-  if (category === 'Hotkey') return <Zap size={18} />
-  if (category === 'Media') return <Activity size={18} />
-  return <Sparkles size={18} />
 }
 
 function App() {
@@ -275,7 +269,7 @@ function App() {
                 >
                   <div className="stripe" />
                   <div className="cardTop"><span>{button.index}</span><b>{button.category}</b></div>
-                  <div className="cardIcon">{categoryIcon(button.category)}</div>
+                  <div className="cardIcon"><ActionIcon action={button.action} label={button.label} category={button.category} size={34} /></div>
                   <strong>{button.label}</strong>
                   <small>{button.event.replace('_PRESS', '')}</small>
                 </button>
@@ -367,7 +361,12 @@ function App() {
                   {Object.entries(actionGroups).map(([group, actions]) => (
                     <details key={group} open>
                       <summary>{group} · {actions.length}</summary>
-                      {actions.map((action) => <code key={action.id}>{action.id}</code>)}
+                      {actions.map((action) => (
+                        <code key={action.id} className="actionCode">
+                          <ActionIcon action={action.id} label={action.label} category={action.category} size={16} />
+                          <span>{action.id}</span>
+                        </code>
+                      ))}
                     </details>
                   ))}
                 </div>

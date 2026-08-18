@@ -45,7 +45,7 @@ h3 { font-size: 18px; }
 .cardTop { display: flex; align-items: center; justify-content: space-between; color: #94a3b8; font-size: 12px; }
 .cardTop span { color: var(--cardColor); font-weight: 900; }
 .cardTop b { color: #020617; background: var(--cardColor); border-radius: 999px; padding: 3px 8px; font-size: 10px; }
-.cardIcon { margin-top: 20px; color: var(--cardColor); }
+.cardIcon { margin-top: 18px; color: var(--cardColor); filter: drop-shadow(0 10px 22px color-mix(in srgb, var(--cardColor) 30%, transparent)); }
 .deckCard strong { display: block; font-size: 20px; line-height: 1.05; letter-spacing: -.04em; margin-top: 12px; }
 .deckCard small { display: block; color: #64748b; margin-top: 10px; }
 .playCard { grid-column: span 2; min-height: 118px; background: linear-gradient(135deg, rgba(251,146,60,.18), rgba(15,23,42,.95)); }
@@ -69,6 +69,9 @@ select option { background: #0f172a; color: #e2e8f0; }
 details { border: 1px solid rgba(148,163,184,.12); border-radius: 16px; padding: 10px; background: rgba(2,6,23,.22); }
 summary { color: white; font-weight: 800; margin-bottom: 8px; }
 code { display: block; color: #cbd5e1; background: rgba(15,23,42,.7); padding: 7px 8px; border-radius: 10px; margin: 5px 0; font-size: 12px; }
+.actionCode { display: flex; align-items: center; gap: 8px; }
+.actionCode svg { color: var(--accent); flex: 0 0 auto; }
+.actionCode span { overflow: hidden; text-overflow: ellipsis; }
 .profileList { display: grid; gap: 8px; }
 .statusCard { display: flex; align-items: center; gap: 10px; }
 .logBar { border: 1px solid rgba(148,163,184,.12); background: rgba(2,6,23,.5); border-radius: 18px; padding: 12px; display: grid; gap: 5px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
