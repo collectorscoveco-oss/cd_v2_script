@@ -24,22 +24,34 @@ This fork keeps the original ConsoleDeck V2 files and adds a cleaner no-screen S
 
 ```bat
 scripts\setup_windows.bat
-copy bridge\config.example.json bridge\config.json
+```
+
+Before the Arduino arrives, use the GUI virtual controller:
+
+```bat
+scripts\run_virtual_deck.bat
+```
+
+When the Arduino arrives and is flashed/wired, run the hardware bridge:
+
+```bat
 scripts\run_bridge.bat
 ```
 
-If you already had an older `bridge\config.json`, overwrite it after pulling new defaults:
+If you already had an older `bridge\config.json`, reset it after pulling new defaults:
 
 ```bat
-copy /Y bridge\config.example.json bridge\config.json
+scripts\reset_config_to_default.bat
 ```
 
-You can test mapped events before the Arduino is wired:
+You can also test one mapped event from Command Prompt:
 
 ```bat
 scripts\simulate_event.bat BTN_05_PRESS
 scripts\simulate_event.bat BTN_08_LONG
 ```
+
+Full plug-and-play notes: `docs\plug-and-play.md`.
 
 ## Sonar probe
 
