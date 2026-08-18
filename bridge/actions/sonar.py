@@ -18,11 +18,12 @@ CORE_PROPS_CANDIDATES = [
 
 PROBE_ENDPOINTS = [
     "/",
+    "/mode",
+    "/audioDevices",
+    "/streamRedirections/",
+    "/volumeSettings/classic",
+    "/volumeSettings/streamer",
     "/subApps",
-    "/sonar",
-    "/sonar/volumeSettings/classic",
-    "/sonar/volumeSettings",
-    "/sonar/volumeSettings/streamer",
 ]
 
 
@@ -57,11 +58,35 @@ class SonarClient:
                 continue
             for key in ("ggEncryptedAddress", "address", "apiAddress", "ggAddress"):
                 value = data.get(key)
-                if value:
-                    value = self.normalize_api_base(str(value), encrypted=(key == "ggEncryptedAddress"))
-                    LOG.info("Discovered SteelSeries API from %s key %s: %s", path, key, value)
-                    return value
+                if not value:
+                    continue
+                engine_base = self.normalize_api_base(str(value), encrypted=(key == "ggEncryptedAddress"))
+                LOG.info("Discovered SteelSeries Engine API from %s key %s: %s", path, key, engine_base)
+                sonar_base = self.discover_sonar_from_engine(engine_base)
+                if sonar_base:
+                    LOG.info("Discovered Sonar API base from /subApps: %s", sonar_base)
+                    return sonar_base
+                # Fall back to the engine base only so the probe can still print /subApps.
+                return engine_base
         LOG.warning("Could not auto-discover SteelSeries GG API base. Set actions.sonar.api_base in config.json after probing.")
+        return None
+
+    def discover_sonar_from_engine(self, engine_base: str | None) -> str | None:
+        if not engine_base:
+            return None
+        for base in [engine_base, self.swap_scheme(engine_base)]:
+            if not base:
+                continue
+            try:
+                data = self.request_url("GET", base.rstrip("/") + "/subApps")
+            except Exception as exc:
+                LOG.debug("/subApps failed on %s: %s", base, exc)
+                continue
+            sonar = data.get("subApps", {}).get("sonar", {}) if isinstance(data, dict) else {}
+            metadata = sonar.get("metadata", {}) if isinstance(sonar, dict) else {}
+            address = metadata.get("webServerAddress")
+            if address:
+                return self.normalize_api_base(str(address), encrypted=False)
         return None
 
     @staticmethod
@@ -77,14 +102,31 @@ class SonarClient:
             value = ("https://" if encrypted else "http://") + value
         return value
 
-    def alternate_api_base(self) -> str | None:
-        if not self.api_base:
+    @staticmethod
+    def swap_scheme(value: str | None) -> str | None:
+        if not value:
             return None
-        if self.api_base.startswith("https://"):
-            return "http://" + self.api_base[len("https://"):]
-        if self.api_base.startswith("http://"):
-            return "https://" + self.api_base[len("http://"):]
+        if value.startswith("https://"):
+            return "http://" + value[len("https://"):]
+        if value.startswith("http://"):
+            return "https://" + value[len("http://"):]
         return None
+
+    def alternate_api_base(self) -> str | None:
+        return self.swap_scheme(self.api_base)
+
+    def request_url(self, method: str, url: str, payload: dict | None = None):
+        body = json.dumps(payload).encode("utf-8") if payload is not None else None
+        req = urllib.request.Request(url, data=body, method=method.upper())
+        req.add_header("Content-Type", "application/json")
+        with urllib.request.urlopen(req, timeout=2, context=self._ssl_context) as resp:
+            text = resp.read().decode("utf-8", errors="replace")
+            if not text:
+                return None
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError:
+                return text
 
     def request(self, method: str, path: str, payload: dict | None = None):
         if not self.api_base:
@@ -94,18 +136,8 @@ class SonarClient:
             raise RuntimeError("SteelSeries GG API base not found. Is SteelSeries GG/Sonar running?")
         self.api_base = normalized_base
         url = normalized_base.rstrip("/") + path
-        body = json.dumps(payload).encode("utf-8") if payload is not None else None
-        req = urllib.request.Request(url, data=body, method=method.upper())
-        req.add_header("Content-Type", "application/json")
         try:
-            with urllib.request.urlopen(req, timeout=2, context=self._ssl_context) as resp:
-                text = resp.read().decode("utf-8", errors="replace")
-                if not text:
-                    return None
-                try:
-                    return json.loads(text)
-                except json.JSONDecodeError:
-                    return text
+            return self.request_url(method, url, payload)
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"Sonar API HTTP {exc.code} for {path}: {detail}") from exc
@@ -140,15 +172,22 @@ class SonarClient:
         self.api_base = original_base
         return results
 
+    def get_mode(self) -> str:
+        mode = self.request("GET", "/mode")
+        return str(mode).strip('"') if mode else "classic"
+
     def get_volume_settings(self):
-        # Known common endpoint from community reverse-engineering; may need adjustment per GG version.
-        return self.request("GET", "/sonar/volumeSettings/classic")
+        mode = self.get_mode()
+        return self.request("GET", f"/volumeSettings/{mode}")
 
     def set_channel_volume(self, channel: str, volume: float):
         channel_id = self.channels.get(channel, channel)
         volume = max(0.0, min(1.0, float(volume)))
         # Community endpoints have varied. Keep this isolated for quick correction after live probe.
-        return self.request("PUT", f"/sonar/volumeSettings/classic/{channel_id}/Volume/{volume}")
+        mode = self.get_mode()
+        if mode == "streamer":
+            return self.request("PUT", f"/volumeSettings/streamer/monitoring/{channel_id}/Volume/{volume}")
+        return self.request("PUT", f"/volumeSettings/classic/{channel_id}/Volume/{volume}")
 
     def adjust_channel(self, channel: str, delta: float):
         current = self.get_volume_settings()
@@ -183,6 +222,24 @@ class SonarClient:
                     return found
         return None
 
+    def _extract_muted(self, settings, channel_id: str) -> bool | None:
+        if isinstance(settings, dict):
+            for key, value in settings.items():
+                if str(key).lower() == str(channel_id).lower():
+                    if isinstance(value, dict):
+                        for mute_key in ("muted", "isMuted", "Mute"):
+                            if mute_key in value:
+                                return bool(value[mute_key])
+                found = self._extract_muted(value, channel_id)
+                if found is not None:
+                    return found
+        elif isinstance(settings, list):
+            for item in settings:
+                found = self._extract_muted(item, channel_id)
+                if found is not None:
+                    return found
+        return None
+
     def volume_up(self, channel: str):
         return self.adjust_channel(channel, self.step)
 
@@ -192,8 +249,13 @@ class SonarClient:
     def toggle_mute(self, channel: str):
         # Placeholder until live probe confirms mute endpoint shape.
         channel_id = self.channels.get(channel, channel)
-        return self.request("POST", f"/sonar/volumeSettings/classic/{channel_id}/Mute/Toggle")
+        # If we cannot read current state, default to toggling on the bridge side later.
+        current = self.get_volume_settings()
+        muted = self._extract_muted(current, channel_id)
+        target = "false" if muted else "true"
+        mode = self.get_mode()
+        return self.request("PUT", f"/volumeSettings/{mode}/{channel_id}/Mute/{target}")
 
     def rotate_output(self):
         # Placeholder until live probe confirms endpoint shape.
-        return self.request("POST", "/sonar/output/rotate")
+        raise NotImplementedError("Output rotation needs device selection config; Sonar API discovery works first.")
