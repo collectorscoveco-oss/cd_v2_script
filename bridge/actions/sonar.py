@@ -43,6 +43,7 @@ class SonarClient:
         self.api_base = self.config.get("api_base", "auto")
         self.tls_verify = bool(self.config.get("tls_verify", False))
         self._ssl_context = None if self.tls_verify else ssl._create_unverified_context()
+        self._mute_cache: dict[str, bool] = {}
         if self.api_base == "auto":
             self.api_base = self.discover_api_base()
 
@@ -260,14 +261,46 @@ class SonarClient:
         return self.adjust_channel(channel, -self.step)
 
     def toggle_mute(self, channel: str):
-        # Placeholder until live probe confirms mute endpoint shape.
         channel_id = self.channels.get(channel, channel)
-        # If we cannot read current state, default to toggling on the bridge side later.
         current = self.get_volume_settings()
         muted = self._extract_muted(current, channel_id)
-        target = "false" if muted else "true"
+        if muted is None:
+            # Some Sonar builds return volume data without an obvious mute field.
+            # If we always default to False, every press sends Mute=true and the
+            # button can mute but never unmute. Keep a tiny bridge-side fallback
+            # so repeated presses still alternate until a live probe teaches us
+            # the exact shape for this GG version.
+            muted = self._mute_cache.get(str(channel_id), False)
+        return self.set_channel_mute(channel, not muted)
+
+    def set_channel_mute(self, channel: str, muted: bool):
+        channel_id = self.channels.get(channel, channel)
         mode = self.get_mode()
-        return self.request("PUT", f"/volumeSettings/{mode}/{channel_id}/Mute/{target}")
+        target = "true" if muted else "false"
+        paths = []
+        if mode == "streamer":
+            paths.extend([
+                f"/volumeSettings/streamer/monitoring/{channel_id}/Mute/{target}",
+                f"/volumeSettings/streamer/streaming/{channel_id}/Mute/{target}",
+            ])
+        paths.extend([
+            f"/volumeSettings/{mode}/{channel_id}/Mute/{target}",
+            f"/volumeSettings/{mode}/{channel_id}/muted/{target}",
+            f"/volumeSettings/{mode}/{channel_id}/isMuted/{target}",
+            f"/volumeSettings/classic/{channel_id}/Mute/{target}",
+            f"/volumeSettings/classic/{channel_id}/muted/{target}",
+            f"/volumeSettings/classic/{channel_id}/isMuted/{target}",
+        ])
+        last_error: Exception | None = None
+        for path in dict.fromkeys(paths):
+            try:
+                result = self.request("PUT", path)
+                self._mute_cache[str(channel_id)] = bool(muted)
+                return result
+            except Exception as exc:
+                last_error = exc
+                LOG.debug("Sonar mute endpoint failed for %s: %s", path, exc)
+        raise RuntimeError(f"Could not set Sonar mute for {channel} ({channel_id}) to {target}: {last_error}")
 
     def rotate_output(self):
         # Placeholder until live probe confirms endpoint shape.

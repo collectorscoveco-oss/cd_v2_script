@@ -50,3 +50,4 @@
 - Added a manual Button Icon picker in Button Setup, storing per-page/per-button icon overrides with Auto mode for inferred icons.
 - Fixed the modern UI update button to run through the command shell from the repo root, avoiding `[WinError 2]` when direct `git`/`npm` process lookup fails on Windows.
 - Added an OrcaSlicer icon choice and auto-detection for `OrcaSlicer.exe` / Orca labels.
+- Fixed Sonar mic mute toggles so they can unmute when GG does not expose mute state, added explicit mic mute/unmute actions, and expanded hotkey key-code support for Discord/OBS shortcuts.

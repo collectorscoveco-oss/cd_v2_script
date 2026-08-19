@@ -46,6 +46,9 @@ That starts:
 - Button Setup includes a manual Button Icon picker with Auto, brand logos, and generic fallback icons; selected overrides are saved per page/button
 - OrcaSlicer is included as a selectable icon and is auto-detected from `OrcaSlicer.exe` / Orca labels
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
+- Sonar mic mute toggles keep a bridge-side fallback state when GG does not report a mute field, so repeated presses can mute and unmute instead of only muting
+- Explicit Sonar actions are available for Mic Mute Toggle, Mic Mute, and Mic Unmute
+- Hotkey support covers letters, numbers, F1-F24, arrows, and common keys so Discord/OBS custom hotkeys can be configured more reliably
 
 ## Next steps
 

@@ -89,6 +89,10 @@ class ActionRegistry:
             client.volume_down(parts[1]); return
         if len(parts) == 3 and parts[2] == "toggle_mute":
             client.toggle_mute(parts[1]); return
+        if len(parts) == 3 and parts[2] == "mute":
+            client.set_channel_mute(parts[1], True); return
+        if len(parts) == 3 and parts[2] == "unmute":
+            client.set_channel_mute(parts[1], False); return
         if action_name == "sonar.output.rotate":
             client.rotate_output(); return
         raise KeyError(f"Unknown Sonar action: {action_name}")
