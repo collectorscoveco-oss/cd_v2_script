@@ -49,11 +49,14 @@ function App() {
   const [appKey, setAppKey] = useState('')
   const [appPath, setAppPath] = useState('')
   const [appLabel, setAppLabel] = useState('')
+  const [hotkeyKey, setHotkeyKey] = useState('discord_mute')
+  const [hotkeyLabel, setHotkeyLabel] = useState('Discord Mute')
+  const [hotkeyCombo, setHotkeyCombo] = useState('ctrl+alt+shift+m')
   const [targetDraft, setTargetDraft] = useState('')
   const [iconDraft, setIconDraft] = useState('auto')
   const [colorDraft, setColorDraft] = useState('#8b5cf6')
   const [useAutoColor, setUseAutoColor] = useState(true)
-  const [setupMode, setSetupMode] = useState<'existing' | 'exe' | 'website'>('existing')
+  const [setupMode, setSetupMode] = useState<'existing' | 'exe' | 'website' | 'hotkey'>('existing')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
   const longPressTimer = useRef<number | null>(null)
@@ -224,6 +227,26 @@ function App() {
     setActionDraft(`app.${setupMode === 'website' ? 'open' : 'launch'}.${cleanKey}`)
   }
 
+  async function addHotkeyAction(assignToSelected: boolean) {
+    if (!state) return
+    const key = hotkeyKey || hotkeyLabel || 'custom_hotkey'
+    const label = hotkeyLabel || hotkeyKey || 'Custom Hotkey'
+    const next = await api<State>('/hotkey-action', {
+      method: 'POST',
+      body: JSON.stringify({
+        key,
+        label,
+        combo: hotkeyCombo,
+        profile: assignToSelected && selected ? state.profile.key : '',
+        event: assignToSelected && selected ? selected.event : '',
+      }),
+    })
+    setState(next)
+    if (selected) setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+    const cleanKey = key.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    setActionDraft(`hotkey.${cleanKey}`)
+  }
+
   async function saveCurrentActionTarget() {
     if (!currentAction?.editableTarget) return
     const next = await api<State>('/action-target', {
@@ -340,6 +363,7 @@ function App() {
                       <button className={setupMode === 'existing' ? 'mode active' : 'mode'} onClick={() => setSetupMode('existing')}>Use existing action</button>
                       <button className={setupMode === 'exe' ? 'mode active' : 'mode'} onClick={() => setSetupMode('exe')}>Open an .exe</button>
                       <button className={setupMode === 'website' ? 'mode active' : 'mode'} onClick={() => setSetupMode('website')}>Open website/protocol</button>
+                      <button className={setupMode === 'hotkey' ? 'mode active' : 'mode'} onClick={() => setSetupMode('hotkey')}>Keyboard shortcut</button>
                     </div>
 
                     <div className="quickRow">
@@ -358,7 +382,7 @@ function App() {
                         </select>
                         {currentAction?.editableTarget && (
                           <div className="editTargetBox">
-                            <label>{currentAction.category === 'Website' ? 'URL / protocol' : 'App path / command'}</label>
+                            <label>{currentAction.category === 'Hotkey' ? 'Shortcut keys' : currentAction.category === 'Website' ? 'URL / protocol' : 'App path / command'}</label>
                             <input value={targetDraft} onChange={(e) => setTargetDraft(e.target.value)} />
                             <button className="ghost" onClick={saveCurrentActionTarget}>Save This Action Path/URL</button>
                           </div>
@@ -429,6 +453,31 @@ function App() {
                         </div>
                         <button className="primary" onClick={async () => { await addManualAppAction(true); await saveAppearance() }}>Create Shortcut Button</button>
                         <div className="hintBox smallHint">Note: app protocols like spotify: are shown as App buttons now, not Website buttons.</div>
+                      </>
+                    )}
+
+                    {setupMode === 'hotkey' && (
+                      <>
+                        <label>Button name</label>
+                        <input value={hotkeyLabel} onChange={(e) => setHotkeyLabel(e.target.value)} placeholder="Example: Discord Mute" />
+                        <label>Short action key</label>
+                        <input value={hotkeyKey} onChange={(e) => setHotkeyKey(e.target.value)} placeholder="Example: discord_mute" />
+                        <label>Shortcut keys</label>
+                        <input value={hotkeyCombo} onChange={(e) => setHotkeyCombo(e.target.value)} placeholder="Example: ctrl+alt+shift+m" />
+                        <div className="hintBox smallHint">Use keys you can actually press in Discord. Recommended: ctrl+alt+shift+m. Put the same combo in Discord → User Settings → Keybinds → Toggle Mute.</div>
+                        <label>Button icon</label>
+                        <div className="iconPickerRow">
+                          <div className="iconPreview"><ActionIcon action={hotkeyKey} label={hotkeyLabel} category="Hotkey" icon={iconDraft} size={24} /></div>
+                          <select value={iconDraft} onChange={(e) => setIconDraft(e.target.value)}>
+                            {ICON_CHOICES.map((choice) => <option key={choice.key} value={choice.key}>{choice.label}</option>)}
+                          </select>
+                        </div>
+                        <label>Button color</label>
+                        <div className="colorPickerRow">
+                          <input type="color" value={colorDraft} onChange={(e) => { setColorDraft(e.target.value); setUseAutoColor(false) }} />
+                          <button className={useAutoColor ? 'mode active' : 'mode'} onClick={() => { setUseAutoColor(true); setColorDraft(selected.autoColor || selected.color) }}>Auto color</button>
+                        </div>
+                        <button className="primary" onClick={async () => { await addHotkeyAction(true); await saveAppearance() }}>Create Hotkey Button</button>
                       </>
                     )}
 

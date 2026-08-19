@@ -20,10 +20,11 @@ def test_spotify_protocol_is_app_not_website():
     assert action_category("app.open.youtube", cfg) == "Website"
 
 
-def test_discord_mute_hotkey_migrates_away_from_chrome_shortcut():
-    cfg = {"actions": {"hotkey": {"discord_mute": ["ctrl", "shift", "m"]}}}
-    assert migrate_config(cfg) is True
-    assert cfg["actions"]["hotkey"]["discord_mute"] == ["f13"]
+def test_discord_mute_hotkey_migrates_away_from_chrome_shortcut_and_f13():
+    for old_combo in (["ctrl", "shift", "m"], ["f13"]):
+        cfg = {"actions": {"hotkey": {"discord_mute": old_combo}}}
+        assert migrate_config(cfg) is True
+        assert cfg["actions"]["hotkey"]["discord_mute"] == ["ctrl", "alt", "shift", "m"]
 
 
 def test_action_target_can_be_edited():
@@ -69,3 +70,22 @@ def test_button_color_override_can_be_saved_and_cleared():
     button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
     assert button["customColor"] == ""
     assert button["color"] == button["autoColor"]
+
+
+def test_hotkey_action_can_be_created_and_assigned():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+    snap = state.add_hotkey_action("discord_mute_alt", "Discord Mute", "ctrl+alt+shift+m", "apps", "BTN_06_PRESS")
+    action = next(item for item in snap["actions"] if item["id"] == "hotkey.discord_mute_alt")
+    button = next(item for item in snap["buttons"] if item["event"] == "BTN_06_PRESS")
+    assert action["target"] == "ctrl+alt+shift+m"
+    assert action["editableTarget"] is True
+    assert button["action"] == "hotkey.discord_mute_alt"
+
+
+def test_hotkey_action_target_can_be_edited():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+    snap = state.update_action_target("hotkey.discord_mute", "ctrl+alt+shift+m")
+    action = next(item for item in snap["actions"] if item["id"] == "hotkey.discord_mute")
+    assert action["target"] == "ctrl+alt+shift+m"

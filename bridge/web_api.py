@@ -87,6 +87,10 @@ def action_target(config: dict, action: str | None) -> str:
     if action.startswith("app.open."):
         key = action.split(".", 2)[2]
         return str(config.get("actions", {}).get("app", {}).get("open", {}).get(key, ""))
+    if action.startswith("hotkey."):
+        key = action.split(".", 1)[1]
+        keys = config.get("actions", {}).get("hotkey", {}).get(key, [])
+        return "+".join(str(key) for key in keys)
     return ""
 
 
@@ -139,7 +143,7 @@ def available_actions(config: dict) -> list[dict]:
             "label": action_label(action),
             "category": action_category(action, config),
             "target": action_target(config, action),
-            "editableTarget": action.startswith(("app.launch.", "app.open.")),
+            "editableTarget": action.startswith(("app.launch.", "app.open.", "hotkey.")),
         }
         for action in sorted(actions)
     ]
@@ -325,13 +329,41 @@ class SonarDeckApiState:
             elif action.startswith("app.open."):
                 key = action.split(".", 2)[2]
                 self.config.setdefault("actions", {}).setdefault("app", {}).setdefault("open", {})[key] = clean_target
+            elif action.startswith("hotkey."):
+                key = action.split(".", 1)[1]
+                keys = [part.strip().lower() for part in clean_target.replace(",", "+").split("+") if part.strip()]
+                if not keys:
+                    raise ValueError("Hotkey must be something like ctrl+alt+shift+m")
+                self.config.setdefault("actions", {}).setdefault("hotkey", {})[key] = keys
             else:
-                raise ValueError("Only App/Website action targets are editable")
+                raise ValueError("Only App/Website/Hotkey targets are editable")
             save_config(self.config, self.config_path)
             current = str(self.profiles.current_key)
             self.reload()
             self.profiles.current_key = current
             self.append_log(f"Updated action target: {action} -> {clean_target}")
+            return self.snapshot()
+
+    def add_hotkey_action(self, key: str, label: str, combo: str, profile: str = "", event: str = "") -> dict:
+        with self.lock:
+            clean_key = "".join(ch if ch.isalnum() else "_" for ch in key.strip().lower()).strip("_")
+            if not clean_key:
+                raise ValueError("Hotkey key is required, for example: discord_mute or push_to_talk")
+            keys = [part.strip().lower() for part in combo.strip().replace(",", "+").split("+") if part.strip()]
+            if not keys:
+                raise ValueError("Hotkey combo is required, for example: ctrl+alt+shift+m")
+            self.config.setdefault("actions", {}).setdefault("hotkey", {})[clean_key] = keys
+            action_id = f"hotkey.{clean_key}"
+            if profile and event:
+                item = self.config["profiles"]["items"].setdefault(profile, {})
+                item.setdefault("events", {})[event] = action_id
+                if label.strip():
+                    item.setdefault("labels", {})[event] = label.strip()
+            save_config(self.config, self.config_path)
+            self.reload()
+            if profile:
+                self.profiles.current_key = profile
+            self.append_log(f"Added hotkey action: {action_id} -> {'+'.join(keys)}")
             return self.snapshot()
 
     def update_app(self) -> dict:
@@ -437,6 +469,14 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                 state = self.server.state.update_action_target(
                     str(payload.get("action", "")),
                     str(payload.get("target", "")),
+                )
+            elif parsed.path == "/api/hotkey-action":
+                state = self.server.state.add_hotkey_action(
+                    str(payload.get("key", "")),
+                    str(payload.get("label", "")),
+                    str(payload.get("combo", "")),
+                    str(payload.get("profile", "")),
+                    str(payload.get("event", "")),
                 )
             elif parsed.path == "/api/update":
                 state = self.server.state.update_app()
