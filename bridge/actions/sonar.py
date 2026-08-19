@@ -262,15 +262,22 @@ class SonarClient:
 
     def toggle_mute(self, channel: str):
         channel_id = self.channels.get(channel, channel)
-        current = self.get_volume_settings()
-        muted = self._extract_muted(current, channel_id)
-        if muted is None:
-            # Some Sonar builds return volume data without an obvious mute field.
-            # If we always default to False, every press sends Mute=true and the
-            # button can mute but never unmute. Keep a tiny bridge-side fallback
-            # so repeated presses still alternate until a live probe teaches us
-            # the exact shape for this GG version.
-            muted = self._mute_cache.get(str(channel_id), False)
+        cache_key = str(channel_id)
+        # Prefer our own last successful write when present. Some GG/Sonar builds
+        # report stale or branch-specific mute fields for a moment after changing
+        # state, which made repeated presses keep sending Mute=true.
+        if cache_key in self._mute_cache:
+            muted = self._mute_cache[cache_key]
+        else:
+            current = self.get_volume_settings()
+            muted = self._extract_muted(current, channel_id)
+            if muted is None:
+                # Some Sonar builds return volume data without an obvious mute field.
+                # If we always default to False, every press sends Mute=true and the
+                # button can mute but never unmute. Keep a tiny bridge-side fallback
+                # so repeated presses still alternate until a live probe teaches us
+                # the exact shape for this GG version.
+                muted = False
         return self.set_channel_mute(channel, not muted)
 
     def set_channel_mute(self, channel: str, muted: bool):

@@ -299,6 +299,9 @@
         "alt",
         "s"
       ]
+    },
+    "hotkey_focus": {
+      "discord_mute": false
     }
   },
   "logging": {
