@@ -51,3 +51,4 @@
 - Fixed the modern UI update button to run through the command shell from the repo root, avoiding `[WinError 2]` when direct `git`/`npm` process lookup fails on Windows.
 - Added an OrcaSlicer icon choice and auto-detection for `OrcaSlicer.exe` / Orca labels.
 - Fixed Sonar mic mute toggles so they can unmute when GG does not expose mute state, added explicit mic mute/unmute actions, and expanded hotkey key-code support for Discord/OBS shortcuts.
+- Changed the Discord mute hotkey default from `Ctrl+Shift+M` to `F13` to avoid Chrome's profile-menu shortcut, and added per-button color overrides in the modern Button Setup UI.

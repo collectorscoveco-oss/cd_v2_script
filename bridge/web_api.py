@@ -171,6 +171,7 @@ class SonarDeckApiState:
         events = current.get("events", {})
         labels = current.get("labels", {})
         icons = current.get("icons", {})
+        colors = current.get("colors", {})
         buttons = []
         for idx, event in enumerate(BUTTON_EVENTS, start=1):
             action = events.get(event)
@@ -184,7 +185,9 @@ class SonarDeckApiState:
                     "category": category,
                     "target": action_target(self.config, action),
                     "icon": icons.get(event, ""),
-                    "color": CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"]),
+                    "color": colors.get(event) or CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"]),
+                    "autoColor": CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"]),
+                    "customColor": colors.get(event, ""),
                 }
             )
         encoder = []
@@ -248,6 +251,23 @@ class SonarDeckApiState:
             self.reload()
             self.profiles.current_key = profile
             self.append_log(f"Saved icon: {profile} {event} -> {clean_icon or 'Auto'}")
+            return self.snapshot()
+
+    def save_color(self, profile: str, event: str, color: str) -> dict:
+        with self.lock:
+            item = self.config["profiles"]["items"].setdefault(profile, {})
+            colors = item.setdefault("colors", {})
+            clean_color = color.strip()
+            if clean_color:
+                if not (clean_color.startswith("#") and len(clean_color) == 7):
+                    raise ValueError("Button color must be a hex color like #8b5cf6")
+                colors[event] = clean_color
+            else:
+                colors.pop(event, None)
+            save_config(self.config, self.config_path)
+            self.reload()
+            self.profiles.current_key = profile
+            self.append_log(f"Saved color: {profile} {event} -> {clean_color or 'Auto'}")
             return self.snapshot()
 
     def save_mapping(self, profile: str, event: str, action: str, label: str | None = None) -> dict:
@@ -390,6 +410,12 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                     str(payload.get("profile", "")),
                     str(payload.get("event", "")),
                     str(payload.get("icon", "")),
+                )
+            elif parsed.path == "/api/color":
+                state = self.server.state.save_color(
+                    str(payload.get("profile", "")),
+                    str(payload.get("event", "")),
+                    str(payload.get("color", "")),
                 )
             elif parsed.path == "/api/mapping":
                 state = self.server.state.save_mapping(

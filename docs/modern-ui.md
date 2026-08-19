@@ -49,6 +49,8 @@ That starts:
 - Sonar mic mute toggles keep a bridge-side fallback state when GG does not report a mute field, so repeated presses can mute and unmute instead of only muting
 - Explicit Sonar actions are available for Mic Mute Toggle, Mic Mute, and Mic Unmute
 - Hotkey support covers letters, numbers, F1-F24, arrows, and common keys so Discord/OBS custom hotkeys can be configured more reliably
+- Discord Mute default hotkey is now `F13` instead of `Ctrl+Shift+M` because Chrome can steal `Ctrl+Shift+M` and open the profile menu
+- Button Setup includes a Button Color picker with Auto Color or a custom per-page/per-button color override
 
 ## Next steps
 

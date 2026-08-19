@@ -34,6 +34,14 @@ def migrate_config(config: dict) -> bool:
         open_actions["spotify"] = "spotify:"
         changed = True
 
+    hotkeys = actions.setdefault("hotkey", {})
+    if hotkeys.get("discord_mute") == ["ctrl", "shift", "m"]:
+        # Ctrl+Shift+M is claimed by Chrome/other apps when Discord does not
+        # catch it globally. F13 is much less likely to collide; set Discord's
+        # Toggle Mute global keybind to F13.
+        hotkeys["discord_mute"] = ["f13"]
+        changed = True
+
     profiles = config.get("profiles", {}).get("items", {})
     for item in profiles.values():
         events = item.setdefault("events", {})

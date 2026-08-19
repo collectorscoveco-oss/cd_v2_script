@@ -274,9 +274,7 @@
     },
     "hotkey": {
       "discord_mute": [
-        "ctrl",
-        "shift",
-        "m"
+        "f13"
       ],
       "obs_scene_1": [
         "ctrl",

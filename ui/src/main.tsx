@@ -13,6 +13,8 @@ type DeckButton = {
   target?: string
   icon?: string
   color: string
+  autoColor?: string
+  customColor?: string
 }
 
 type Profile = { key: string; name: string }
@@ -49,6 +51,8 @@ function App() {
   const [appLabel, setAppLabel] = useState('')
   const [targetDraft, setTargetDraft] = useState('')
   const [iconDraft, setIconDraft] = useState('auto')
+  const [colorDraft, setColorDraft] = useState('#8b5cf6')
+  const [useAutoColor, setUseAutoColor] = useState(true)
   const [setupMode, setSetupMode] = useState<'existing' | 'exe' | 'website'>('existing')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
@@ -77,8 +81,10 @@ function App() {
     setLabelDraft(selected?.label ?? '')
     setActionDraft(selected?.action ?? '')
     setIconDraft(selected?.icon || 'auto')
+    setColorDraft(selected?.customColor || selected?.autoColor || selected?.color || '#8b5cf6')
+    setUseAutoColor(!selected?.customColor)
     setSetupMode('existing')
-  }, [selected?.event, selected?.action])
+  }, [selected?.event, selected?.action, selected?.icon, selected?.color, selected?.customColor])
 
   const accent = state?.profile.theme.accent ?? '#32d3ff'
   const actionGroups = useMemo(() => {
@@ -155,6 +161,21 @@ function App() {
     })
     setState(next)
     setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+  }
+
+  async function saveColor() {
+    if (!state || !selected) return
+    const next = await api<State>('/color', {
+      method: 'POST',
+      body: JSON.stringify({ profile: state.profile.key, event: selected.event, color: useAutoColor ? '' : colorDraft }),
+    })
+    setState(next)
+    setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+  }
+
+  async function saveAppearance() {
+    await saveIcon()
+    await saveColor()
   }
 
   async function saveMapping() {
@@ -353,7 +374,12 @@ function App() {
                             ))}
                           </select>
                         </div>
-                        <button className="primary" onClick={async () => { await saveMapping(); await saveIcon() }}><Save size={16} /> Save Button</button>
+                        <label>Button color</label>
+                        <div className="colorPickerRow">
+                          <input type="color" value={colorDraft} onChange={(e) => { setColorDraft(e.target.value); setUseAutoColor(false) }} />
+                          <button className={useAutoColor ? 'mode active' : 'mode'} onClick={() => { setUseAutoColor(true); setColorDraft(selected.autoColor || selected.color) }}>Auto color</button>
+                        </div>
+                        <button className="primary" onClick={async () => { await saveMapping(); await saveAppearance() }}><Save size={16} /> Save Button</button>
                       </>
                     )}
 
@@ -372,7 +398,12 @@ function App() {
                             {ICON_CHOICES.map((choice) => <option key={choice.key} value={choice.key}>{choice.label}</option>)}
                           </select>
                         </div>
-                        <button className="primary" onClick={async () => { await addManualAppAction(true); await saveIcon() }}>Create App Button</button>
+                        <label>Button color</label>
+                        <div className="colorPickerRow">
+                          <input type="color" value={colorDraft} onChange={(e) => { setColorDraft(e.target.value); setUseAutoColor(false) }} />
+                          <button className={useAutoColor ? 'mode active' : 'mode'} onClick={() => { setUseAutoColor(true); setColorDraft(selected.autoColor || selected.color) }}>Auto color</button>
+                        </div>
+                        <button className="primary" onClick={async () => { await addManualAppAction(true); await saveAppearance() }}>Create App Button</button>
                       </>
                     )}
 
@@ -391,13 +422,19 @@ function App() {
                             {ICON_CHOICES.map((choice) => <option key={choice.key} value={choice.key}>{choice.label}</option>)}
                           </select>
                         </div>
-                        <button className="primary" onClick={async () => { await addManualAppAction(true); await saveIcon() }}>Create Shortcut Button</button>
+                        <label>Button color</label>
+                        <div className="colorPickerRow">
+                          <input type="color" value={colorDraft} onChange={(e) => { setColorDraft(e.target.value); setUseAutoColor(false) }} />
+                          <button className={useAutoColor ? 'mode active' : 'mode'} onClick={() => { setUseAutoColor(true); setColorDraft(selected.autoColor || selected.color) }}>Auto color</button>
+                        </div>
+                        <button className="primary" onClick={async () => { await addManualAppAction(true); await saveAppearance() }}>Create Shortcut Button</button>
                         <div className="hintBox smallHint">Note: app protocols like spotify: are shown as App buttons now, not Website buttons.</div>
                       </>
                     )}
 
                     <button className="ghost" onClick={saveLabel}>Save Name Only</button>
                     <button className="ghost" onClick={saveIcon}>Save Icon Only</button>
+                    <button className="ghost" onClick={saveColor}>Save Color Only</button>
                     <button className="ghost" onClick={clearMapping}>Clear Button Mapping</button>
                   </div>
                 ) : (

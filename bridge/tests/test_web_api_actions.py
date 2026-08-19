@@ -2,6 +2,7 @@ import json
 import tempfile
 from pathlib import Path
 
+from bridge.config import migrate_config
 from bridge.web_api import SonarDeckApiState, action_category
 
 
@@ -17,6 +18,12 @@ def test_spotify_protocol_is_app_not_website():
     cfg = {"actions": {"app": {"open": {"spotify": "spotify:", "youtube": "https://youtube.com"}}}}
     assert action_category("app.open.spotify", cfg) == "App"
     assert action_category("app.open.youtube", cfg) == "Website"
+
+
+def test_discord_mute_hotkey_migrates_away_from_chrome_shortcut():
+    cfg = {"actions": {"hotkey": {"discord_mute": ["ctrl", "shift", "m"]}}}
+    assert migrate_config(cfg) is True
+    assert cfg["actions"]["hotkey"]["discord_mute"] == ["f13"]
 
 
 def test_action_target_can_be_edited():
@@ -48,3 +55,17 @@ def test_button_icon_override_can_be_saved_and_cleared():
     snap = state.save_icon("sonar", "BTN_03_PRESS", "")
     button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
     assert button["icon"] == ""
+
+
+def test_button_color_override_can_be_saved_and_cleared():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+    snap = state.save_color("sonar", "BTN_03_PRESS", "#ff00aa")
+    button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
+    assert button["color"] == "#ff00aa"
+    assert button["customColor"] == "#ff00aa"
+
+    snap = state.save_color("sonar", "BTN_03_PRESS", "")
+    button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
+    assert button["customColor"] == ""
+    assert button["color"] == button["autoColor"]
