@@ -45,3 +45,4 @@
 - Improved Windows app launching so pasted full `.exe` paths like `C:\Users\crsma\AppData\Roaming\Spotify\Spotify.exe` launch directly instead of being handed to `cmd.exe` unquoted.
 - Simplified the modern UI Mapping tab into Button Setup modes, made App/Website targets editable, and categorized protocol shortcuts like `spotify:` as App buttons instead of Website buttons.
 - Added a brand/logo icon system for the modern deck cards and action list, including Spotify, Discord, SteelSeries/Sonar, YouTube, OBS, Bambu, Twitch, Steam, Epic, PlayStation, NVIDIA, GitHub, Chrome, VLC, Plex, Elgato, and generic future-action fallbacks.
+- Added a modern UI Check / Install Updates button and made the launchers run `npm install` before starting so new UI dependencies are installed after `git pull`.

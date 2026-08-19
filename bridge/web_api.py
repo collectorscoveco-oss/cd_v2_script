@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import subprocess
 import threading
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -293,6 +294,28 @@ class SonarDeckApiState:
             self.append_log(f"Updated action target: {action} -> {clean_target}")
             return self.snapshot()
 
+    def update_app(self) -> dict:
+        with self.lock:
+            root = Path.cwd()
+            commands = [
+                ["git", "pull", "--ff-only"],
+                ["npm", "install", "--prefix", "ui"],
+            ]
+            output: list[str] = []
+            for command in commands:
+                result = subprocess.run(command, cwd=root, text=True, capture_output=True, timeout=180)
+                joined = " ".join(command)
+                if result.stdout.strip():
+                    output.append(f"$ {joined}\n{result.stdout.strip()}")
+                if result.stderr.strip():
+                    output.append(f"$ {joined} [stderr]\n{result.stderr.strip()}")
+                if result.returncode != 0:
+                    self.append_log(f"Update failed: {joined}")
+                    raise RuntimeError("Update failed while running " + joined + "\n" + "\n".join(output[-2:]))
+            self.reload()
+            self.append_log("Update complete. Restart SonarDeck Studio if the UI does not refresh automatically.")
+            return self.snapshot()
+
 
 class SonarDeckRequestHandler(BaseHTTPRequestHandler):
     server_version = "SonarDeckModernApi/0.1"
@@ -356,6 +379,8 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                     str(payload.get("action", "")),
                     str(payload.get("target", "")),
                 )
+            elif parsed.path == "/api/update":
+                state = self.server.state.update_app()
             else:
                 self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
                 return

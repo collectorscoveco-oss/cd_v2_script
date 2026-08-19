@@ -210,6 +210,19 @@ function App() {
     setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
   }
 
+  async function updateApp() {
+    const ok = window.confirm('Check for updates now? This will run git pull and npm install. Restart SonarDeck after it finishes if the UI does not refresh automatically.')
+    if (!ok) return
+    try {
+      setError('')
+      const next = await api<State>('/update', { method: 'POST', body: JSON.stringify({}) })
+      setState(next)
+      window.alert('Update complete. Restart SonarDeck Studio if the UI does not refresh automatically.')
+    } catch (err) {
+      setError(String(err))
+    }
+  }
+
   return (
     <main className="app" style={{ '--accent': accent } as React.CSSProperties}>
       <aside className="sidebar">
@@ -228,6 +241,7 @@ function App() {
           ))}
         </nav>
         <button className="ghost" onClick={refresh}><RefreshCcw size={16} /> Refresh bridge</button>
+        <button className="ghost updateButton" onClick={updateApp}>Check / Install Updates</button>
       </aside>
 
       <section className="content">

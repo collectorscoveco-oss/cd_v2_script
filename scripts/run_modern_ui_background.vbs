@@ -25,10 +25,11 @@ If Not fso.FileExists(projectDir & "\bridge\config.json") Then
   fso.CopyFile projectDir & "\bridge\config.example.json", projectDir & "\bridge\config.json", True
 End If
 
-If Not fso.FolderExists(uiDir & "\node_modules") Then
-  MsgBox "First run needs to install UI dependencies. A setup window will open. Close it when it finishes, then run the background launcher again.", vbInformation, "SonarDeck Studio"
-  shell.Run "cmd /k cd /d """ & uiDir & """ && npm install", 1, False
-  WScript.Quit 0
+cmd = "cmd /c cd /d """ & uiDir & """ && npm install >> """ & logDir & "\sonardeck-ui.log"" 2>&1"
+If shell.Run(cmd, 0, True) <> 0 Then
+  MsgBox "UI dependency install/update failed. Try scripts
+un_modern_ui.bat to see details.", vbCritical, "SonarDeck Studio"
+  WScript.Quit 1
 End If
 
 ' Stop older dev/API listeners first so a second click does not collide with the same ports.

@@ -39,6 +39,8 @@ That starts:
 - App/protocol shortcuts like `spotify:` are categorized as App buttons instead of Website buttons, and existing App/Website action targets can be edited from Button Setup
 - Simplified Button Setup modes: Use existing action, Open an `.exe`, or Open website/protocol
 - Brand/logo icon system for current and future buttons using `simple-icons` plus Lucide fallbacks; see `docs/icons.md`
+- Sidebar Check / Install Updates button runs `git pull --ff-only` and `npm install --prefix ui` through the local bridge API
+- Launchers run `npm install` before starting the UI so newly added frontend packages such as `simple-icons` are installed after `git pull`
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps

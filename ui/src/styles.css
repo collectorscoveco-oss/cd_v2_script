@@ -20,7 +20,9 @@ nav { display: grid; gap: 8px; }
 nav button, .ghost, .profilePills button, .profileList button { border: 1px solid rgba(148,163,184,.14); color: #cbd5e1; background: rgba(15,23,42,.6); border-radius: 13px; padding: 10px 12px; text-align: left; transition: border-color .15s, color .15s, background .15s; }
 nav button:hover, .ghost:hover, .profilePills button:hover, .profileList button:hover { border-color: rgba(255,255,255,.26); color: white; }
 nav button.active, .profilePills button.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, rgba(15,23,42,.72)); color: white; }
-.ghost { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: auto; text-align: center; }
+.ghost { display: flex; align-items: center; gap: 8px; justify-content: center; text-align: center; }
+.sidebar > .ghost:first-of-type { margin-top: auto; }
+.updateButton { border-color: color-mix(in srgb, var(--accent) 46%, rgba(148,163,184,.14)); color: white; }
 
 .content { padding: 26px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; border: 1px solid rgba(148,163,184,.16); border-radius: 24px; background: rgba(15,23,42,.64); box-shadow: 0 20px 80px rgba(0,0,0,.22); }

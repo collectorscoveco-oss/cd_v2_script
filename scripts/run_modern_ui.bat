@@ -38,18 +38,16 @@ if not exist "bridge\config.json" (
   copy "bridge\config.example.json" "bridge\config.json" >nul
 )
 
-if not exist "ui\node_modules" (
-  echo First run: installing SonarDeck Studio UI dependencies...
-  cd /d "%~dp0..\ui"
-  call npm install
-  if errorlevel 1 (
-    echo.
-    echo ERROR: npm install failed.
-    pause
-    exit /b 1
-  )
-  cd /d "%~dp0.."
+echo Installing/updating SonarDeck Studio UI dependencies...
+cd /d "%~dp0..\ui"
+call npm install
+if errorlevel 1 (
+  echo.
+  echo ERROR: npm install failed.
+  pause
+  exit /b 1
 )
+cd /d "%~dp0.."
 
 echo Starting Python bridge API on http://127.0.0.1:8765 ...
 start "SonarDeck API" cmd /k "cd /d ""%cd%"" && %PYTHON_CMD% -m bridge.web_api --host 127.0.0.1 --port 8765"
