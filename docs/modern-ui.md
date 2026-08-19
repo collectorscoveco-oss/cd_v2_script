@@ -50,6 +50,7 @@ That starts:
 - Explicit Sonar actions are available for Mic Mute Toggle, Mic Mute, and Mic Unmute
 - Hotkey support covers letters, numbers, F1-F24, arrows, and common keys so Discord/OBS custom hotkeys can be configured more reliably
 - Discord Mute default hotkey is now `Ctrl+Alt+Shift+M` instead of `Ctrl+Shift+M` or `F13`: Chrome can steal `Ctrl+Shift+M`, and F13 is confusing for normal keyboards
+- Discord Mute now focuses the visible Discord window before sending the hotkey, so the browser-based virtual deck does not leave Chrome in front to consume the shortcut
 - Button Setup includes a Keyboard Shortcut mode to create/edit hotkey buttons from the UI; put the same combo in Discord/OBS as a global keybind
 - Button Setup includes a Button Color picker with Auto Color or a custom per-page/per-button color override
 

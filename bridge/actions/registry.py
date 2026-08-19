@@ -55,7 +55,8 @@ class ActionRegistry:
             keys = self.ctx.config.get("actions", {}).get("hotkey", {}).get(key)
             if not keys:
                 raise KeyError(f"No hotkey configured for {key}")
-            hotkey_actions.press(keys)
+            focus_title = "Discord" if key == "discord_mute" else None
+            hotkey_actions.press(keys, focus_title=focus_title)
             return
         if action_name.startswith("sonar."):
             self._sonar(action_name)

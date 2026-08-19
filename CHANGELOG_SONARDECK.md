@@ -52,3 +52,4 @@
 - Added an OrcaSlicer icon choice and auto-detection for `OrcaSlicer.exe` / Orca labels.
 - Fixed Sonar mic mute toggles so they can unmute when GG does not expose mute state, added explicit mic mute/unmute actions, and expanded hotkey key-code support for Discord/OBS shortcuts.
 - Changed the Discord mute hotkey default from `Ctrl+Shift+M`/`F13` to `Ctrl+Alt+Shift+M`, added UI hotkey creation/editing, and kept per-button color overrides in the modern Button Setup UI.
+- Made the Discord Mute action focus the visible Discord window before sending its hotkey, avoiding Chrome consuming the shortcut when the virtual deck is clicked from the browser.

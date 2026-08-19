@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import ctypes
 import logging
 import string
 import sys
 import time
+from ctypes import wintypes
 
 LOG = logging.getLogger(__name__)
 
@@ -53,14 +55,66 @@ def vk_for_key(key: str) -> int:
     return VK[normalized]
 
 
-def press(keys: list[str]) -> None:
+def _window_title(hwnd: int) -> str:
+    user32 = ctypes.windll.user32
+    length = user32.GetWindowTextLengthW(hwnd)
+    if length <= 0:
+        return ""
+    buf = ctypes.create_unicode_buffer(length + 1)
+    user32.GetWindowTextW(hwnd, buf, length + 1)
+    return buf.value
+
+
+def focus_window_title_contains(title_part: str) -> bool:
+    """Bring a visible window whose title contains title_part to the foreground.
+
+    This is intentionally title-based to avoid a pywin32 dependency. It fixes the
+    browser-focused virtual deck case: click button in Chrome -> focus Discord ->
+    send Discord hotkey, instead of Chrome consuming the shortcut.
+    """
+    if not sys.platform.startswith("win"):
+        LOG.info("Would focus window containing %r (non-Windows dry run)", title_part)
+        return False
+
+    user32 = ctypes.windll.user32
+    matches: list[int] = []
+    needle = title_part.lower()
+
+    WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+
+    def callback(hwnd, _lparam):
+        if not user32.IsWindowVisible(hwnd):
+            return True
+        title = _window_title(hwnd)
+        if title and needle in title.lower():
+            matches.append(int(hwnd))
+            return False
+        return True
+
+    user32.EnumWindows(WNDENUMPROC(callback), 0)
+    if not matches:
+        LOG.warning("No visible window found containing %r", title_part)
+        return False
+
+    hwnd = matches[0]
+    SW_RESTORE = 9
+    user32.ShowWindow(hwnd, SW_RESTORE)
+    time.sleep(0.08)
+    user32.SetForegroundWindow(hwnd)
+    time.sleep(0.12)
+    return True
+
+
+def press(keys: list[str], focus_title: str | None = None) -> None:
     normalized = [key.strip().lower() for key in keys if key and key.strip()]
     if not normalized:
         raise ValueError("Hotkey action has no keys configured")
     if not sys.platform.startswith("win"):
         LOG.info("Would press hotkey %s (non-Windows dry run)", "+".join(normalized))
         return
-    import ctypes
+
+    if focus_title:
+        focus_window_title_contains(focus_title)
 
     user32 = ctypes.windll.user32
     KEYEVENTF_KEYUP = 0x0002
