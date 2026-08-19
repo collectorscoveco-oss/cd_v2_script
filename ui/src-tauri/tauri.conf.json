@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SonarDeck Studio",
+  "version": "0.1.0",
+  "identifier": "com.collectorscoveco.sonardeck",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://127.0.0.1:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "SonarDeck Studio",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 1000,
+        "minHeight": 720,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "category": "Utility",
+    "shortDescription": "Native control surface for SteelSeries Sonar and apps",
+    "longDescription": "SonarDeck Studio is a native Windows desktop shell for the SonarDeck controller UI. It talks to the local Python bridge for SteelSeries Sonar, hotkeys, app launching, profiles, colors, and icons."
+  }
+}

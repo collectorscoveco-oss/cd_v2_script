@@ -53,3 +53,4 @@
 - Fixed Sonar mic mute toggles so they can unmute when GG does not expose mute state, added explicit mic mute/unmute actions, and expanded hotkey key-code support for Discord/OBS shortcuts.
 - Changed the Discord mute hotkey default from `Ctrl+Shift+M`/`F13` to `Ctrl+Alt+Shift+M`, added UI hotkey creation/editing, and kept per-button color overrides in the modern Button Setup UI.
 - Made the Discord Mute action focus the visible Discord window before sending its hotkey, avoiding Chrome consuming the shortcut when the virtual deck is clicked from the browser.
+- Started Option 1 native desktop migration with a Tauri shell, `scripts/run_desktop_app.bat`, GitHub Actions Windows package/release workflow, `docs/native-desktop.md`, and `CONTRIBUTORS.md`. Option 2 (C#/.NET) is documented as fallback.
