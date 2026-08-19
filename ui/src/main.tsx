@@ -10,6 +10,7 @@ type DeckButton = {
   action?: string
   label: string
   category: string
+  target?: string
   color: string
 }
 
@@ -283,7 +284,7 @@ function App() {
                 >
                   <div className="stripe" />
                   <div className="cardTop"><span>{button.index}</span><b>{button.category}</b></div>
-                  <div className="cardIcon"><ActionIcon action={button.action} label={button.label} category={button.category} size={34} /></div>
+                  <div className="cardIcon"><ActionIcon action={button.action} label={button.label} category={button.category} target={button.target} size={34} /></div>
                   <strong>{button.label}</strong>
                   <small>{button.event.replace('_PRESS', '')}</small>
                 </button>
@@ -377,7 +378,7 @@ function App() {
                       <summary>{group} · {actions.length}</summary>
                       {actions.map((action) => (
                         <code key={action.id} className="actionCode">
-                          <ActionIcon action={action.id} label={action.label} category={action.category} size={16} />
+                          <ActionIcon action={action.id} label={action.label} category={action.category} target={action.target} size={16} />
                           <span>{action.id}</span>
                         </code>
                       ))}

@@ -49,6 +49,9 @@ if errorlevel 1 (
 )
 cd /d "%~dp0.."
 
+echo Stopping any old SonarDeck processes on ports 8765 and 5173...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 8765,5173 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ } | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }" >nul 2>nul
+
 echo Starting Python bridge API on http://127.0.0.1:8765 ...
 start "SonarDeck API" cmd /k "cd /d ""%cd%"" && %PYTHON_CMD% -m bridge.web_api --host 127.0.0.1 --port 8765"
 

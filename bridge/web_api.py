@@ -179,6 +179,7 @@ class SonarDeckApiState:
                     "action": action,
                     "label": labels.get(event) or action_label(action),
                     "category": category,
+                    "target": action_target(self.config, action),
                     "color": CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"]),
                 }
             )

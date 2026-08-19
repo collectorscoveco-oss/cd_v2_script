@@ -40,7 +40,9 @@ That starts:
 - Simplified Button Setup modes: Use existing action, Open an `.exe`, or Open website/protocol
 - Brand/logo icon system for current and future buttons using `simple-icons` plus Lucide fallbacks; see `docs/icons.md`
 - Sidebar Check / Install Updates button runs `git pull --ff-only` and `npm install --prefix ui` through the local bridge API
+- Vite is pinned to strict port `5173`, and launchers clear old SonarDeck listeners before starting so it does not silently move to `5174`
 - Launchers run `npm install` before starting the UI so newly added frontend packages such as `simple-icons` are installed after `git pull`
+- Automatic icon matching also checks the configured app path / `.exe` filename, so newly added apps can find a matching brand icon without manual setup
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps

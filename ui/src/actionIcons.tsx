@@ -18,6 +18,7 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react'
+import * as simpleIcons from 'simple-icons'
 import {
   siBambulab,
   siDiscord,
@@ -42,6 +43,7 @@ type ActionLike = {
   action?: string
   label?: string
   category?: string
+  target?: string
 }
 
 type Props = ActionLike & {
@@ -68,6 +70,10 @@ const BRAND_ICON_HINTS: Array<[RegExp, SimpleIcon]> = [
   [/elgato|stream deck/i, siElgato],
 ]
 
+const ALL_BRAND_ICONS = Object.values(simpleIcons).filter((value): value is SimpleIcon => {
+  return Boolean(value && typeof value === 'object' && 'title' in value && 'path' in value && 'slug' in value)
+})
+
 function BrandIcon({ icon, size = 30, className }: { icon: SimpleIcon; size?: number; className?: string }) {
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={icon.title}>
@@ -76,10 +82,46 @@ function BrandIcon({ icon, size = 30, className }: { icon: SimpleIcon; size?: nu
   )
 }
 
-export function actionIconKey(action?: string, label?: string, category?: string): string {
-  const text = `${action ?? ''} ${label ?? ''} ${category ?? ''}`.trim()
-  const brand = BRAND_ICON_HINTS.find(([regex]) => regex.test(text))
-  if (brand) return brand[1].slug
+function simplify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/\.exe\b/g, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b(app|launch|open|manual|shortcut|button|x64|x86|64bit|32bit)\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function pathName(path?: string): string {
+  if (!path) return ''
+  const cleaned = path.replace(/^"|"$/g, '').replace(/\\/g, '/')
+  const last = cleaned.split('/').pop() ?? ''
+  return last.replace(/\.exe$/i, '')
+}
+
+function findBrandIcon(action?: string, label?: string, category?: string, target?: string): SimpleIcon | undefined {
+  const text = `${action ?? ''} ${label ?? ''} ${category ?? ''} ${target ?? ''} ${pathName(target)}`.trim()
+  const hinted = BRAND_ICON_HINTS.find(([regex]) => regex.test(text))
+  if (hinted) return hinted[1]
+
+  const tokens = simplify(text).split(' ').filter((token) => token.length >= 3)
+  if (!tokens.length) return undefined
+
+  for (const token of tokens) {
+    const exact = ALL_BRAND_ICONS.find((icon) => simplify(icon.title) === token || icon.slug === token)
+    if (exact) return exact
+  }
+  for (const token of tokens) {
+    const partial = ALL_BRAND_ICONS.find((icon) => simplify(icon.title).split(' ').includes(token) || icon.slug.includes(token))
+    if (partial) return partial
+  }
+  return undefined
+}
+
+export function actionIconKey(action?: string, label?: string, category?: string, target?: string): string {
+  const text = `${action ?? ''} ${label ?? ''} ${category ?? ''} ${target ?? ''} ${pathName(target)}`.trim()
+  const brand = findBrandIcon(action, label, category, target)
+  if (brand) return brand.slug
   if (/play.?pause|pause|media\.play_pause/i.test(text)) return 'play-pause'
   if (/previous|prev|skip.?back|media\.previous/i.test(text)) return 'previous'
   if (/next|skip.?forward|media\.next/i.test(text)) return 'next'
@@ -95,13 +137,13 @@ export function actionIconKey(action?: string, label?: string, category?: string
   return 'default'
 }
 
-export function ActionIcon({ action, label, category, size = 30, className }: Props) {
-  const text = `${action ?? ''} ${label ?? ''} ${category ?? ''}`.trim()
-  const brand = BRAND_ICON_HINTS.find(([regex]) => regex.test(text))
-  if (brand) return <BrandIcon icon={brand[1]} size={size} className={className} />
+export function ActionIcon({ action, label, category, target, size = 30, className }: Props) {
+  const text = `${action ?? ''} ${label ?? ''} ${category ?? ''} ${target ?? ''} ${pathName(target)}`.trim()
+  const brand = findBrandIcon(action, label, category, target)
+  if (brand) return <BrandIcon icon={brand} size={size} className={className} />
 
   const iconProps = { size, className }
-  const key = actionIconKey(action, label, category)
+  const key = actionIconKey(action, label, category, target)
   if (key === 'play-pause') return <Activity {...iconProps} />
   if (key === 'previous') return <SkipBack {...iconProps} />
   if (key === 'next') return <SkipForward {...iconProps} />
