@@ -3,7 +3,8 @@
 The modern UI now uses a mixed icon system:
 
 - real brand SVG logos from `simple-icons` for known apps/services
-- automatic fuzzy brand lookup from the action id, button label, category, configured target, and pasted `.exe` filename
+- Automatic fuzzy brand lookup from the action id, button label, category, configured target, and pasted `.exe` filename
+- Manual per-button icon override from Button Setup, with Auto mode to go back to inferred icons
 - Lucide fallback icons for generic actions such as media keys, volume, mute, mic, hotkeys, pages, and websites
 
 ## Current brand/logo coverage

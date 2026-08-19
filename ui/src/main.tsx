@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, Gamepad2, RefreshCcw, Save, Settings } from 'lucide-react'
 import { createRoot } from 'react-dom/client'
-import { ActionIcon } from './actionIcons'
+import { ActionIcon, ICON_CHOICES } from './actionIcons'
 import './styles.css'
 
 type DeckButton = {
@@ -11,6 +11,7 @@ type DeckButton = {
   label: string
   category: string
   target?: string
+  icon?: string
   color: string
 }
 
@@ -47,6 +48,7 @@ function App() {
   const [appPath, setAppPath] = useState('')
   const [appLabel, setAppLabel] = useState('')
   const [targetDraft, setTargetDraft] = useState('')
+  const [iconDraft, setIconDraft] = useState('auto')
   const [setupMode, setSetupMode] = useState<'existing' | 'exe' | 'website'>('existing')
   const [error, setError] = useState('')
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
@@ -74,6 +76,7 @@ function App() {
   useEffect(() => {
     setLabelDraft(selected?.label ?? '')
     setActionDraft(selected?.action ?? '')
+    setIconDraft(selected?.icon || 'auto')
     setSetupMode('existing')
   }, [selected?.event, selected?.action])
 
@@ -139,6 +142,16 @@ function App() {
     const next = await api<State>('/label', {
       method: 'POST',
       body: JSON.stringify({ profile: state.profile.key, event: selected.event, label: labelDraft }),
+    })
+    setState(next)
+    setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
+  }
+
+  async function saveIcon() {
+    if (!state || !selected) return
+    const next = await api<State>('/icon', {
+      method: 'POST',
+      body: JSON.stringify({ profile: state.profile.key, event: selected.event, icon: iconDraft === 'auto' ? '' : iconDraft }),
     })
     setState(next)
     setSelected(next.buttons.find((b) => b.event === selected.event) ?? null)
@@ -284,7 +297,7 @@ function App() {
                 >
                   <div className="stripe" />
                   <div className="cardTop"><span>{button.index}</span><b>{button.category}</b></div>
-                  <div className="cardIcon"><ActionIcon action={button.action} label={button.label} category={button.category} target={button.target} size={34} /></div>
+                  <div className="cardIcon"><ActionIcon action={button.action} label={button.label} category={button.category} target={button.target} icon={button.icon} size={34} /></div>
                   <strong>{button.label}</strong>
                   <small>{button.event.replace('_PRESS', '')}</small>
                 </button>
@@ -331,7 +344,16 @@ function App() {
                         )}
                         <label>Button name</label>
                         <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} placeholder="Example: Spotify" />
-                        <button className="primary" onClick={saveMapping}><Save size={16} /> Save Button</button>
+                        <label>Button icon</label>
+                        <div className="iconPickerRow">
+                          <div className="iconPreview"><ActionIcon action={actionDraft} label={labelDraft} category={selected.category} target={currentAction?.target} icon={iconDraft} size={24} /></div>
+                          <select value={iconDraft} onChange={(e) => setIconDraft(e.target.value)}>
+                            {ICON_CHOICES.map((choice) => (
+                              <option key={choice.key} value={choice.key}>{choice.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button className="primary" onClick={async () => { await saveMapping(); await saveIcon() }}><Save size={16} /> Save Button</button>
                       </>
                     )}
 
@@ -343,7 +365,14 @@ function App() {
                         <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="Example: spotify" />
                         <label>Full .exe path</label>
                         <input value={appPath} onChange={(e) => setAppPath(e.target.value)} placeholder={'C:\\Users\\crsma\\AppData\\Roaming\\Spotify\\Spotify.exe'} />
-                        <button className="primary" onClick={() => addManualAppAction(true)}>Create App Button</button>
+                        <label>Button icon</label>
+                        <div className="iconPickerRow">
+                          <div className="iconPreview"><ActionIcon action={appKey} label={appLabel} category="App" target={appPath} icon={iconDraft} size={24} /></div>
+                          <select value={iconDraft} onChange={(e) => setIconDraft(e.target.value)}>
+                            {ICON_CHOICES.map((choice) => <option key={choice.key} value={choice.key}>{choice.label}</option>)}
+                          </select>
+                        </div>
+                        <button className="primary" onClick={async () => { await addManualAppAction(true); await saveIcon() }}>Create App Button</button>
                       </>
                     )}
 
@@ -355,12 +384,20 @@ function App() {
                         <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="Example: spotify" />
                         <label>Website URL or app protocol</label>
                         <input value={appPath} onChange={(e) => setAppPath(e.target.value)} placeholder="https://youtube.com or spotify:" />
-                        <button className="primary" onClick={() => addManualAppAction(true)}>Create Shortcut Button</button>
+                        <label>Button icon</label>
+                        <div className="iconPickerRow">
+                          <div className="iconPreview"><ActionIcon action={appKey} label={appLabel} category="Website" target={appPath} icon={iconDraft} size={24} /></div>
+                          <select value={iconDraft} onChange={(e) => setIconDraft(e.target.value)}>
+                            {ICON_CHOICES.map((choice) => <option key={choice.key} value={choice.key}>{choice.label}</option>)}
+                          </select>
+                        </div>
+                        <button className="primary" onClick={async () => { await addManualAppAction(true); await saveIcon() }}>Create Shortcut Button</button>
                         <div className="hintBox smallHint">Note: app protocols like spotify: are shown as App buttons now, not Website buttons.</div>
                       </>
                     )}
 
                     <button className="ghost" onClick={saveLabel}>Save Name Only</button>
+                    <button className="ghost" onClick={saveIcon}>Save Icon Only</button>
                     <button className="ghost" onClick={clearMapping}>Clear Button Mapping</button>
                   </div>
                 ) : (

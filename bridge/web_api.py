@@ -168,6 +168,7 @@ class SonarDeckApiState:
         current = self.config["profiles"]["items"].get(current_key, {})
         events = current.get("events", {})
         labels = current.get("labels", {})
+        icons = current.get("icons", {})
         buttons = []
         for idx, event in enumerate(BUTTON_EVENTS, start=1):
             action = events.get(event)
@@ -180,6 +181,7 @@ class SonarDeckApiState:
                     "label": labels.get(event) or action_label(action),
                     "category": category,
                     "target": action_target(self.config, action),
+                    "icon": icons.get(event, ""),
                     "color": CATEGORY_COLORS.get(category, CATEGORY_COLORS["Other"]),
                 }
             )
@@ -229,6 +231,21 @@ class SonarDeckApiState:
             self.reload()
             self.profiles.current_key = profile
             self.append_log(f"Saved display name: {profile} {event} -> {label or '(auto)'}")
+            return self.snapshot()
+
+    def save_icon(self, profile: str, event: str, icon: str) -> dict:
+        with self.lock:
+            item = self.config["profiles"]["items"].setdefault(profile, {})
+            icons = item.setdefault("icons", {})
+            clean_icon = icon.strip()
+            if clean_icon:
+                icons[event] = clean_icon
+            else:
+                icons.pop(event, None)
+            save_config(self.config, self.config_path)
+            self.reload()
+            self.profiles.current_key = profile
+            self.append_log(f"Saved icon: {profile} {event} -> {clean_icon or 'Auto'}")
             return self.snapshot()
 
     def save_mapping(self, profile: str, event: str, action: str, label: str | None = None) -> dict:
@@ -359,6 +376,12 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                 state = self.server.state.set_profile(str(payload.get("profile", "")))
             elif parsed.path == "/api/label":
                 state = self.server.state.save_label(str(payload.get("profile", "")), str(payload.get("event", "")), str(payload.get("label", "")))
+            elif parsed.path == "/api/icon":
+                state = self.server.state.save_icon(
+                    str(payload.get("profile", "")),
+                    str(payload.get("event", "")),
+                    str(payload.get("icon", "")),
+                )
             elif parsed.path == "/api/mapping":
                 state = self.server.state.save_mapping(
                     str(payload.get("profile", "")),

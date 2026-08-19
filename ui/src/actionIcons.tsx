@@ -44,6 +44,7 @@ type ActionLike = {
   label?: string
   category?: string
   target?: string
+  icon?: string
 }
 
 type Props = ActionLike & {
@@ -118,7 +119,57 @@ function findBrandIcon(action?: string, label?: string, category?: string, targe
   return undefined
 }
 
-export function actionIconKey(action?: string, label?: string, category?: string, target?: string): string {
+const GENERIC_ICON_LABELS: Record<string, string> = {
+  'auto': 'Auto',
+  'app': 'Generic App',
+  'audio': 'Audio / Music',
+  'default': 'Sparkle / Default',
+  'game': 'Game',
+  'hotkey': 'Keyboard Shortcut',
+  'mic': 'Microphone',
+  'mute': 'Mute',
+  'next': 'Next Track',
+  'output': 'Output Device',
+  'play-pause': 'Play/Pause',
+  'previous': 'Previous Track',
+  'profile': 'Switch Page',
+  'settings': 'Settings',
+  'video': 'Video / Streaming',
+  'volume': 'Volume',
+  'website': 'Website',
+}
+
+const PICKER_BRANDS = [
+  siSpotify,
+  siDiscord,
+  siSteelseries,
+  siYoutube,
+  siObsstudio,
+  siBambulab,
+  siTwitch,
+  siSteam,
+  siEpicgames,
+  siPlaystation,
+  siNvidia,
+  siGithub,
+  siGooglechrome,
+  siVlcmediaplayer,
+  siPlex,
+  siElgato,
+]
+
+export const ICON_CHOICES = [
+  ...Object.entries(GENERIC_ICON_LABELS).map(([key, label]) => ({ key, label })),
+  ...PICKER_BRANDS.map((icon) => ({ key: icon.slug, label: icon.title })),
+]
+
+function iconByKey(key?: string): SimpleIcon | undefined {
+  if (!key) return undefined
+  return ALL_BRAND_ICONS.find((icon) => icon.slug === key || simplify(icon.title) === simplify(key))
+}
+
+export function actionIconKey(action?: string, label?: string, category?: string, target?: string, icon?: string): string {
+  if (icon && icon !== 'auto') return icon
   const text = `${action ?? ''} ${label ?? ''} ${category ?? ''} ${target ?? ''} ${pathName(target)}`.trim()
   const brand = findBrandIcon(action, label, category, target)
   if (brand) return brand.slug
@@ -137,13 +188,14 @@ export function actionIconKey(action?: string, label?: string, category?: string
   return 'default'
 }
 
-export function ActionIcon({ action, label, category, target, size = 30, className }: Props) {
-  const text = `${action ?? ''} ${label ?? ''} ${category ?? ''} ${target ?? ''} ${pathName(target)}`.trim()
+export function ActionIcon({ action, label, category, target, icon, size = 30, className }: Props) {
+  const overrideBrand = iconByKey(icon)
+  if (overrideBrand) return <BrandIcon icon={overrideBrand} size={size} className={className} />
   const brand = findBrandIcon(action, label, category, target)
-  if (brand) return <BrandIcon icon={brand} size={size} className={className} />
+  if ((!icon || icon === 'auto') && brand) return <BrandIcon icon={brand} size={size} className={className} />
 
   const iconProps = { size, className }
-  const key = actionIconKey(action, label, category, target)
+  const key = actionIconKey(action, label, category, target, icon)
   if (key === 'play-pause') return <Activity {...iconProps} />
   if (key === 'previous') return <SkipBack {...iconProps} />
   if (key === 'next') return <SkipForward {...iconProps} />

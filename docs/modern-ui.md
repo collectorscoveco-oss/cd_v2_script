@@ -43,6 +43,7 @@ That starts:
 - Vite is pinned to strict port `5173`, and launchers clear old SonarDeck listeners before starting so it does not silently move to `5174`
 - Launchers run `npm install` before starting the UI so newly added frontend packages such as `simple-icons` are installed after `git pull`
 - Automatic icon matching also checks the configured app path / `.exe` filename, so newly added apps can find a matching brand icon without manual setup
+- Button Setup includes a manual Button Icon picker with Auto, brand logos, and generic fallback icons; selected overrides are saved per page/button
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps

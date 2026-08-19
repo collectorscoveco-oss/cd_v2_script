@@ -36,3 +36,15 @@ def test_app_action_can_create_website_or_protocol_shortcut():
     button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
     assert button["action"] == "app.open.spotify_protocol"
     assert button["category"] == "App"
+
+
+def test_button_icon_override_can_be_saved_and_cleared():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+    snap = state.save_icon("sonar", "BTN_03_PRESS", "spotify")
+    button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
+    assert button["icon"] == "spotify"
+
+    snap = state.save_icon("sonar", "BTN_03_PRESS", "")
+    button = next(item for item in snap["buttons"] if item["event"] == "BTN_03_PRESS")
+    assert button["icon"] == ""
