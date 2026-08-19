@@ -27,6 +27,7 @@ type State = {
   specials: { event: string; action?: string; label: string }[]
   actions: Action[]
   log: string[]
+  lastAction?: { ok: boolean; event?: string; action?: string; message: string }
 }
 
 const API = 'http://127.0.0.1:8765/api'
@@ -109,6 +110,9 @@ function App() {
       setError('')
       const next = await api<State>('/fire', { method: 'POST', body: JSON.stringify({ event }) })
       setState(next)
+      if (next.lastAction && !next.lastAction.ok) {
+        setError(next.lastAction.message)
+      }
     } catch (err) {
       setError(String(err))
     }
@@ -318,6 +322,11 @@ function App() {
         </header>
 
         {error && <div className="error">{error}</div>}
+        {state?.lastAction?.message && (
+          <div className={state.lastAction.ok ? 'actionStatus ok' : 'actionStatus bad'}>
+            Last button: {state.lastAction.message}
+          </div>
+        )}
 
         <div className="workspace">
           <section className="deckPanel">

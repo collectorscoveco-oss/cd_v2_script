@@ -33,6 +33,9 @@ h3 { font-size: 18px; }
 .profilePills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .profilePills button { text-align: center; padding: 9px 12px; }
 .error { border: 1px solid rgba(248,113,113,.34); background: rgba(127,29,29,.38); color: #fecaca; border-radius: 18px; padding: 12px 14px; }
+.actionStatus { border-radius: 18px; padding: 12px 14px; font-size: 13px; }
+.actionStatus.ok { border: 1px solid rgba(34,197,94,.32); background: rgba(20,83,45,.24); color: #bbf7d0; }
+.actionStatus.bad { border: 1px solid rgba(248,113,113,.34); background: rgba(127,29,29,.38); color: #fecaca; }
 
 .workspace { display: grid; grid-template-columns: minmax(560px, 1fr) 380px; gap: 18px; align-items: start; }
 .deckPanel, .inspector { border: 1px solid rgba(148,163,184,.16); border-radius: 28px; background: rgba(15,23,42,.58); padding: 18px; box-shadow: 0 24px 90px rgba(0,0,0,.2); }

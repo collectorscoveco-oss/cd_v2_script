@@ -89,3 +89,35 @@ def test_hotkey_action_target_can_be_edited():
     snap = state.update_action_target("hotkey.discord_mute", "ctrl+alt+shift+m")
     action = next(item for item in snap["actions"] if item["id"] == "hotkey.discord_mute")
     assert action["target"] == "ctrl+alt+shift+m"
+
+def test_fire_reports_success_for_working_action():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+    calls = []
+
+    class FakeRegistry:
+        def execute(self, action):
+            calls.append(action)
+
+    state.registry = FakeRegistry()
+    snap = state.fire("BTN_10_PRESS")
+    assert calls == ["media.play_pause"]
+    assert snap["lastAction"]["ok"] is True
+    assert "media.play_pause" in snap["lastAction"]["message"]
+
+
+def test_fire_reports_action_errors_in_state_instead_of_silent_success():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+
+    class FailingRegistry:
+        def execute(self, action):
+            raise RuntimeError("synthetic action failure")
+
+    state.registry = FailingRegistry()
+    snap = state.fire("BTN_10_PRESS")
+    assert snap["lastAction"]["ok"] is False
+    assert snap["lastAction"]["action"] == "media.play_pause"
+    assert "synthetic action failure" in snap["lastAction"]["message"]
+    assert any("ERROR" in entry and "synthetic action failure" in entry for entry in snap["log"])
+

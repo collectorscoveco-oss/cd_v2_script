@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from .actions.registry import ActionContext, ActionRegistry
 from .config import load_config, save_config
-from .main import handle_event, setup_logging
+from .main import setup_logging
 from .profiles import ProfileManager
 
 BUTTON_EVENTS = [f"BTN_{idx:02d}_PRESS" for idx in range(1, 11)]
@@ -157,6 +157,7 @@ class SonarDeckApiState:
         self.profiles = ProfileManager(self.config["profiles"])
         self.registry = ActionRegistry(ActionContext(config=self.config, profile_manager=self.profiles))
         self.lock = threading.Lock()
+        self.last_action: dict = {"ok": True, "message": "Ready"}
         self.log: list[str] = [f"Modern UI bridge ready. Active page: {self.profiles.current_name}"]
 
     def reload(self) -> None:
@@ -210,14 +211,29 @@ class SonarDeckApiState:
             "specials": specials,
             "actions": available_actions(self.config),
             "log": self.log,
+            "lastAction": self.last_action,
         }
 
     def fire(self, event: str) -> dict:
         with self.lock:
             before = str(self.profiles.current_key)
-            handle_event(event, self.profiles, self.registry)
+            action = self.profiles.action_for_event(event)
+            if not action:
+                message = f"{event}: no action mapped on {self.profiles.current_name} page"
+                self.last_action = {"ok": False, "event": event, "action": "", "message": message}
+                self.append_log("ERROR " + message)
+                return self.snapshot()
+            try:
+                self.registry.execute(action)
+            except Exception as exc:
+                message = f"{event} -> {action} failed: {exc}"
+                self.last_action = {"ok": False, "event": event, "action": action, "message": message}
+                self.append_log("ERROR " + message)
+                return self.snapshot()
             after = str(self.profiles.current_key)
-            self.append_log(f"{event}: {before} -> {after}")
+            message = f"{event}: {before} -> {after}; ran {action}"
+            self.last_action = {"ok": True, "event": event, "action": action, "message": message}
+            self.append_log(message)
             return self.snapshot()
 
     def set_profile(self, profile: str) -> dict:
