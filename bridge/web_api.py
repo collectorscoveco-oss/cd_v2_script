@@ -314,22 +314,29 @@ class SonarDeckApiState:
 
     def update_app(self) -> dict:
         with self.lock:
-            root = Path.cwd()
+            root = Path(__file__).resolve().parents[1]
             commands = [
-                ["git", "pull", "--ff-only"],
-                ["npm", "install", "--prefix", "ui"],
+                "git pull --ff-only",
+                "npm install --prefix ui",
             ]
             output: list[str] = []
             for command in commands:
-                result = subprocess.run(command, cwd=root, text=True, capture_output=True, timeout=180)
-                joined = " ".join(command)
+                try:
+                    result = subprocess.run(command, cwd=root, text=True, capture_output=True, timeout=180, shell=True)
+                except FileNotFoundError as exc:
+                    self.append_log(f"Update failed: could not start command shell for {command}")
+                    raise RuntimeError(
+                        "Update could not start because Windows could not find a required command runner. "
+                        "Try updating from Command Prompt with: git pull && npm install --prefix ui"
+                    ) from exc
                 if result.stdout.strip():
-                    output.append(f"$ {joined}\n{result.stdout.strip()}")
+                    output.append(f"$ {command}\n{result.stdout.strip()}")
                 if result.stderr.strip():
-                    output.append(f"$ {joined} [stderr]\n{result.stderr.strip()}")
+                    output.append(f"$ {command} [stderr]\n{result.stderr.strip()}")
                 if result.returncode != 0:
-                    self.append_log(f"Update failed: {joined}")
-                    raise RuntimeError("Update failed while running " + joined + "\n" + "\n".join(output[-2:]))
+                    self.append_log(f"Update failed: {command}")
+                    detail = "\n".join(output[-2:]) or f"Command exited with code {result.returncode}"
+                    raise RuntimeError("Update failed while running " + command + "\n" + detail)
             self.reload()
             self.append_log("Update complete. Restart SonarDeck Studio if the UI does not refresh automatically.")
             return self.snapshot()

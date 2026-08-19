@@ -48,3 +48,5 @@
 - Added a modern UI Check / Install Updates button and made the launchers run `npm install` before starting so new UI dependencies are installed after `git pull`.
 - Pinned Vite to strict port `5173`, made the visible launcher clear old listeners before starting, and expanded auto-icon matching to use configured action targets and pasted `.exe` filenames.
 - Added a manual Button Icon picker in Button Setup, storing per-page/per-button icon overrides with Auto mode for inferred icons.
+- Fixed the modern UI update button to run through the command shell from the repo root, avoiding `[WinError 2]` when direct `git`/`npm` process lookup fails on Windows.
+- Added an OrcaSlicer icon choice and auto-detection for `OrcaSlicer.exe` / Orca labels.

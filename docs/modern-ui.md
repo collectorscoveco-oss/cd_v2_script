@@ -44,6 +44,7 @@ That starts:
 - Launchers run `npm install` before starting the UI so newly added frontend packages such as `simple-icons` are installed after `git pull`
 - Automatic icon matching also checks the configured app path / `.exe` filename, so newly added apps can find a matching brand icon without manual setup
 - Button Setup includes a manual Button Icon picker with Auto, brand logos, and generic fallback icons; selected overrides are saved per page/button
+- OrcaSlicer is included as a selectable icon and is auto-detected from `OrcaSlicer.exe` / Orca labels
 - Spotify defaults use the `spotify:` app protocol instead of assuming `spotify.exe` is on PATH
 
 ## Next steps

@@ -39,6 +39,14 @@ import {
   type SimpleIcon,
 } from 'simple-icons'
 
+const siOrcaSlicer = {
+  title: 'OrcaSlicer',
+  slug: 'orcaslicer',
+  hex: '20b8c7',
+  source: 'https://github.com/SoftFever/OrcaSlicer',
+  path: 'M12 2.1c2.2 0 4.4.8 6 2.4.5.5.5 1.3-.1 1.7l-1.7 1.1c.9.6 1.8 1.4 2.4 2.5 1.5 2.8.7 6.2-1.9 8.2-2.8 2.2-7.2 2.7-10.6 1.2-2.9-1.2-4.6-3.5-4.2-6 .2-1.4 1-2.6 2.1-3.4.4-.3.9 0 .9.5v1.3c1.4-1.8 3.5-3 5.9-3.2l-.8-2.8c-.2-.7.4-1.3 1.1-1.3h.8Zm1.4 6.5c-3.3 0-6 1.6-7.1 4.1-.3.7-.1 1.5.5 2 2.2 1.6 6.5 1.8 9 .2 1.6-1 2.1-2.8 1.3-4.2-.7-1.3-2.1-2.1-3.7-2.1Zm-3.8 3.5a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1Zm5 0a1 1 0 1 0 0 2.1 1 1 0 0 0 0-2.1Z',
+} as unknown as SimpleIcon
+
 type ActionLike = {
   action?: string
   label?: string
@@ -58,6 +66,7 @@ const BRAND_ICON_HINTS: Array<[RegExp, SimpleIcon]> = [
   [/steelseries|steelseries_gg|\bgg\b|sonar/i, siSteelseries],
   [/youtube|yt\b/i, siYoutube],
   [/obs|obsstudio|stream/i, siObsstudio],
+  [/orca|orcaslicer|orca slicer/i, siOrcaSlicer],
   [/bambu|bambu lab|bambu_studio/i, siBambulab],
   [/twitch/i, siTwitch],
   [/steam/i, siSteam],
@@ -145,6 +154,7 @@ const PICKER_BRANDS = [
   siSteelseries,
   siYoutube,
   siObsstudio,
+  siOrcaSlicer,
   siBambulab,
   siTwitch,
   siSteam,

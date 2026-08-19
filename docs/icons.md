@@ -16,6 +16,7 @@ The registry currently recognizes these by action id, label, or category text:
 - SteelSeries / GG / Sonar
 - YouTube
 - OBS Studio
+- OrcaSlicer
 - Bambu Lab / Bambu Studio
 - Twitch
 - Steam
