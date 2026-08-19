@@ -19,6 +19,7 @@ type DeckButton = {
 
 type Profile = { key: string; name: string }
 type Action = { id: string; label: string; category: string; target?: string; editableTarget?: boolean }
+type Diagnostics = { summary: string[]; probe: { endpoint?: string; base?: string; ok?: boolean; error?: string; data?: unknown }[] }
 type State = {
   profile: { key: string; name: string; theme: { accent: string; panel: string } }
   profiles: Profile[]
@@ -59,6 +60,7 @@ function App() {
   const [useAutoColor, setUseAutoColor] = useState(true)
   const [setupMode, setSetupMode] = useState<'existing' | 'exe' | 'website' | 'hotkey'>('existing')
   const [error, setError] = useState('')
+  const [diagnostics, setDiagnostics] = useState<Diagnostics | null>(null)
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
   const longPressTimer = useRef<number | null>(null)
   const longPressFired = useRef(false)
@@ -280,6 +282,17 @@ function App() {
       const next = await api<State>('/update', { method: 'POST', body: JSON.stringify({}) })
       setState(next)
       window.alert('Update complete. Restart SonarDeck Studio if the UI does not refresh automatically.')
+    } catch (err) {
+      setError(String(err))
+    }
+  }
+
+  async function runDiagnostics() {
+    try {
+      setError('')
+      const next = await api<State & { diagnostics: Diagnostics }>('/diagnostics', { method: 'POST', body: JSON.stringify({}) })
+      setState(next)
+      setDiagnostics(next.diagnostics)
     } catch (err) {
       setError(String(err))
     }
@@ -534,6 +547,17 @@ function App() {
                 <div className="sectionTitle"><h3>Hardware Status</h3><span>Ready for the Arduino phase.</span></div>
                 <div className="statusCard"><Settings /> Arduino: planned 10 buttons; Button 10 short=Play/Pause, hold=Next Page</div>
                 <div className="statusCard"><Activity /> Bridge API: http://127.0.0.1:8765</div>
+                <button className="primary" onClick={runDiagnostics}>Run Sonar Diagnostics</button>
+                {diagnostics && (
+                  <div className="diagnosticsBox">
+                    <b>Diagnostics summary</b>
+                    {diagnostics.summary.map((line, idx) => <span key={idx}>{line}</span>)}
+                    <b>Probe details</b>
+                    {diagnostics.probe.map((item, idx) => (
+                      <code key={idx}>{item.ok ? 'OK' : 'FAIL'} {item.endpoint} {item.error ? `- ${item.error}` : ''}</code>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </aside>

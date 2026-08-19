@@ -121,3 +121,14 @@ def test_fire_reports_action_errors_in_state_instead_of_silent_success():
     assert "synthetic action failure" in snap["lastAction"]["message"]
     assert any("ERROR" in entry and "synthetic action failure" in entry for entry in snap["log"])
 
+
+def test_run_diagnostics_reports_missing_sonar_api_base():
+    path = _temp_config()
+    state = SonarDeckApiState(path)
+    assert state.registry.ctx.sonar_client is not None
+    state.registry.ctx.sonar_client.api_base = None
+    snap = state.run_diagnostics()
+    diagnostics = snap["diagnostics"]
+    assert any("not discovered" in line for line in diagnostics["summary"])
+    assert diagnostics["probe"] == []
+

@@ -84,6 +84,9 @@ code { display: block; color: #cbd5e1; background: rgba(15,23,42,.7); padding: 7
 .profileList { display: grid; gap: 8px; }
 .statusCard { display: flex; align-items: center; gap: 10px; }
 .logBar { border: 1px solid rgba(148,163,184,.12); background: rgba(2,6,23,.5); border-radius: 18px; padding: 12px; display: grid; gap: 5px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+.diagnosticsBox { margin-top: 12px; border: 1px solid rgba(148,163,184,.14); background: rgba(2,6,23,.4); border-radius: 16px; padding: 12px; display: grid; gap: 8px; color: #cbd5e1; font-size: 12px; }
+.diagnosticsBox b { color: white; }
+.diagnosticsBox span { color: #cbd5e1; }
 
 @media (max-width: 1100px) {
   body { min-width: 0; }

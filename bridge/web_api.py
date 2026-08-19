@@ -382,6 +382,34 @@ class SonarDeckApiState:
             self.append_log(f"Added hotkey action: {action_id} -> {'+'.join(keys)}")
             return self.snapshot()
 
+    def run_diagnostics(self) -> dict:
+        with self.lock:
+            sonar_client = self.registry.ctx.sonar_client
+            summary: list[str] = []
+            probe: list[dict] = []
+            if sonar_client is None:
+                summary.append("Sonar client was not initialized.")
+            else:
+                summary.append(f"Sonar API base: {sonar_client.api_base or 'not discovered'}")
+                if not sonar_client.api_base:
+                    summary.append("SteelSeries GG/Sonar was not discovered. Make sure SteelSeries GG is open, then restart SonarDeck.")
+                else:
+                    probe = sonar_client.probe()
+                    ok_items = [item for item in probe if item.get("ok")]
+                    summary.append(f"Sonar probe: {len(ok_items)} of {len(probe)} endpoints responded.")
+                    mode_items = [item for item in probe if item.get("ok") and item.get("endpoint") == "/mode"]
+                    if mode_items:
+                        summary.append(f"Sonar mode: {mode_items[0].get('data')}")
+                    volume_items = [item for item in probe if item.get("ok") and str(item.get("endpoint", "")).startswith("/volumeSettings/")]
+                    if not volume_items:
+                        summary.append("No volumeSettings endpoint responded. Sonar buttons will not work until we adjust the endpoint for your GG version.")
+            diagnostics = {"summary": summary, "probe": probe[-12:]}
+            self.last_action = {"ok": True, "message": "Diagnostics complete. Copy/screenshot the Hardware tab output."}
+            self.append_log("Diagnostics complete")
+            snap = self.snapshot()
+            snap["diagnostics"] = diagnostics
+            return snap
+
     def update_app(self) -> dict:
         with self.lock:
             root = Path(__file__).resolve().parents[1]
@@ -496,6 +524,8 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
                 )
             elif parsed.path == "/api/update":
                 state = self.server.state.update_app()
+            elif parsed.path == "/api/diagnostics":
+                state = self.server.state.run_diagnostics()
             else:
                 self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
                 return
