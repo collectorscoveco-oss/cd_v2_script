@@ -75,7 +75,7 @@ It can be run manually from GitHub Actions or automatically by pushing a tag lik
 sonardeck-v0.1.0
 ```
 
-The workflow builds Windows MSI/EXE Tauri package artifacts and uploads them as workflow artifacts. On tags, it also publishes them to GitHub Releases.
+Public users should install the desktop app from the release `.exe` first; it is the double-click NSIS installer. Keep the MSI as a secondary artifact for environments that prefer it. The workflow builds both Windows artifacts and uploads them as workflow artifacts. On tags, it also publishes them to GitHub Releases.
 
 ## Contributors
 

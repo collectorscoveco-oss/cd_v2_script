@@ -49,5 +49,5 @@ class UpdateAppTests(TestCase):
             run.assert_not_called()
             self.assertEqual(result['mode'], 'release')
             self.assertEqual(result['update_url'], GITHUB_LATEST_RELEASE_URL)
-            self.assertIn('release ZIP', result['message'])
-            self.assertIn('scripts/run_release.bat', result['message'])
+            self.assertIn('installer', result['message'])
+            self.assertIn('run it again', result['message'])

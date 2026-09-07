@@ -45,8 +45,8 @@ jobs:
         with:
           name: SonarDeck-Studio-Windows
           path: |
-            ui/src-tauri/target/release/bundle/**/*.msi
             ui/src-tauri/target/release/bundle/**/*.exe
+            ui/src-tauri/target/release/bundle/**/*.msi
           if-no-files-found: error
 
       - name: Publish GitHub Release assets
@@ -54,6 +54,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ui/src-tauri/target/release/bundle/**/*.msi
             ui/src-tauri/target/release/bundle/**/*.exe
+            ui/src-tauri/target/release/bundle/**/*.msi
           generate_release_notes: true

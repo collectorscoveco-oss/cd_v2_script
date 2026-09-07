@@ -233,7 +233,7 @@ def test_update_app_falls_back_to_release_url_outside_checkout(monkeypatch, tmp_
 
     assert result["mode"] == "release"
     assert result["update_url"] == GITHUB_LATEST_RELEASE_URL
-    assert "Download the latest ZIP" in result["message"]
-    assert "scripts/run_release.bat" in result["message"]
+    assert "installer" in result["message"]
+    assert "run it again" in result["message"]
     assert result["snapshot"]["lastAction"]["ok"] is True
 
