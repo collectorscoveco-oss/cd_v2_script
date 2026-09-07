@@ -358,7 +358,7 @@ function App() {
   }
 
   async function updateApp() {
-    const ok = window.confirm('Check for updates now? Dev checkouts run git pull + npm install; installed users open the latest GitHub release page so you can download the updated Windows installer and rerun it.')
+    const ok = window.confirm('Check for updates now? Dev checkouts run git pull + npm install; installed users open the latest GitHub release page so you can download the updated Windows installer and rerun it. On another device, use the bridge/server LAN URL, not 127.0.0.1.')
     if (!ok) return
     try {
       setError('')
@@ -431,13 +431,13 @@ function App() {
           <input
             value={apiBaseDraft}
             onChange={(e) => setApiBaseDraft(e.target.value)}
-            placeholder="Optional: http://192.168.1.50:8765, https://bridge.example.com, or a Cloudflare tunnel"
+            placeholder="Optional: http://192.168.1.50:8766, http://192.168.1.50:8765, https://bridge.example.com, or a Cloudflare tunnel"
           />
           <div className="quickRow">
             <button className="ghost" onClick={saveApiBaseOverride}>Save bridge/server URL</button>
             <button className="ghost" onClick={clearApiBaseOverride}>Use current host</button>
           </div>
-          <div className="hintBox smallHint">Point this UI at a local bridge PC, a Cloudflare tunnel URL, or another PC on the network. The bridge can live on the gaming PC or on a separate server PC; this UI can run wherever you need it. If you are on the installed release, the update button will open the latest release page instead of trying to run git pull.</div>
+          <div className="hintBox smallHint">Point this UI at the bridge/server URL. On an installed release, that is usually the LAN URL on port 8766, like http://192.168.1.50:8766. On a dev checkout it is usually the bridge port on 8765. The bridge can live on the gaming PC or on a separate server PC; this UI can run wherever you need it. If you are on the installed release, the update button will open the latest release page instead of trying to run git pull.</div>
           <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
         </div>
         </aside>

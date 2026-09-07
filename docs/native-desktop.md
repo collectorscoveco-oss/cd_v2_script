@@ -27,7 +27,7 @@ This launcher:
 7. Starts the Python bridge API on `0.0.0.0:8765`.
 8. Starts the Tauri native desktop window.
 
-Use this only on a trusted LAN; the bridge is currently unauthenticated.
+Use this only on a trusted LAN; the bridge is currently unauthenticated. On another device, open the bridge/server LAN URL printed by the launcher, not `127.0.0.1`.
 
 ## First-time Rust requirement
 

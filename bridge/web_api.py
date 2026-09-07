@@ -89,6 +89,11 @@ def is_git_checkout(root: Path) -> bool:
     return (root / ".git").exists()
 
 
+def is_not_git_repository_error(text: str) -> bool:
+    lowered = text.lower()
+    return "fatal: not a git repository" in lowered or "not a git repository" in lowered
+
+
 def action_target(config: dict, action: str | None) -> str:
     if not action:
         return ""
@@ -444,6 +449,15 @@ class SonarDeckApiState:
                     if result.stderr.strip():
                         output.append(f"$ {command} [stderr]\n{result.stderr.strip()}")
                     if result.returncode != 0:
+                        combined = "\n".join(part for part in [result.stdout.strip(), result.stderr.strip()] if part)
+                        if command == "git pull --ff-only" and is_not_git_repository_error(combined):
+                            message = (
+                                "This looks like an installed release, so the in-app updater cannot run git pull here. "
+                                f"Open {GITHUB_LATEST_RELEASE_URL}, download the newest installer, and run it again."
+                            )
+                            self.append_log("Update fallback: git checkout missing, treating as installed release")
+                            self.append_log(message)
+                            return {"mode": "release", "message": message, "update_url": GITHUB_LATEST_RELEASE_URL, "snapshot": self.snapshot()}
                         self.append_log(f"Update failed: {command}")
                         detail = "\n".join(output[-2:]) or f"Command exited with code {result.returncode}"
                         raise RuntimeError("Update failed while running " + command + "\n" + detail)

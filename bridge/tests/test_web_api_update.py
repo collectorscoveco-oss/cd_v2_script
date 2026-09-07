@@ -51,3 +51,21 @@ class UpdateAppTests(TestCase):
             self.assertEqual(result['update_url'], GITHUB_LATEST_RELEASE_URL)
             self.assertIn('installer', result['message'])
             self.assertIn('run it again', result['message'])
+
+    def test_update_app_falls_back_when_git_pull_reports_not_a_repo(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / '.git').mkdir()
+            state = self._make_state(root)
+
+            def fake_run(command: str, **kwargs):
+                if command == 'git pull --ff-only':
+                    return subprocess.CompletedProcess(command, 128, stdout='', stderr='fatal: not a git repository (or any of the parent directories): .git')
+                raise AssertionError(f'unexpected command: {command}')
+
+            with patch('bridge.web_api.repo_root', return_value=root), patch('bridge.web_api.subprocess.run', side_effect=fake_run):
+                result = state.update_app()
+
+            self.assertEqual(result['mode'], 'release')
+            self.assertEqual(result['update_url'], GITHUB_LATEST_RELEASE_URL)
+            self.assertIn('installed release', result['message'])
