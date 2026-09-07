@@ -20,8 +20,8 @@ scripts\run_modern_ui.bat
 
 That starts:
 
-- Python bridge API at `http://127.0.0.1:8765`
-- React dev UI at `http://127.0.0.1:5173`
+- Python bridge API at `http://<pc-ip>:8765`
+- React dev UI at `http://<pc-ip>:5173`
 
 ## Current prototype features
 

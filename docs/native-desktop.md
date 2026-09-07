@@ -24,8 +24,10 @@ This launcher:
 4. Creates `bridge\config.json` if missing.
 5. Runs `npm install` in `ui`.
 6. Stops old listeners on `8765` and `5173`.
-7. Starts the Python bridge API on `127.0.0.1:8765`.
+7. Starts the Python bridge API on `0.0.0.0:8765`.
 8. Starts the Tauri native desktop window.
+
+Use this only on a trusted LAN; the bridge is currently unauthenticated.
 
 ## First-time Rust requirement
 

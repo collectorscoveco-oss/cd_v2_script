@@ -1,9 +1,10 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173",
+    "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "test": "node --test tests/api-base.test.mjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"

@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 
 from bridge.config import migrate_config
-from bridge.web_api import SonarDeckApiState, action_category
+from bridge.web_api import SonarDeckApiState, action_category, run
 
 
 def _temp_config():
@@ -120,6 +120,27 @@ def test_fire_reports_action_errors_in_state_instead_of_silent_success():
     assert snap["lastAction"]["action"] == "media.play_pause"
     assert "synthetic action failure" in snap["lastAction"]["message"]
     assert any("ERROR" in entry and "synthetic action failure" in entry for entry in snap["log"])
+
+
+def test_run_defaults_to_lan_binding(monkeypatch):
+    seen = {}
+
+    class FakeServer:
+        def __init__(self, address, handler):
+            seen["address"] = address
+            seen["handler"] = handler
+            self.state = None
+
+        def serve_forever(self):
+            seen["served"] = True
+
+    monkeypatch.setattr("bridge.web_api.SonarDeckServer", FakeServer)
+    monkeypatch.setattr("bridge.web_api.SonarDeckApiState", lambda config_path=None: {"config_path": config_path})
+
+    run()
+
+    assert seen["address"] == ("0.0.0.0", 8765)
+    assert seen["served"] is True
 
 
 def test_run_diagnostics_reports_missing_sonar_api_base():

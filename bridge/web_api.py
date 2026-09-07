@@ -541,7 +541,7 @@ class SonarDeckServer(ThreadingHTTPServer):
     state: SonarDeckApiState
 
 
-def run(host: str = "127.0.0.1", port: int = 8765, config_path: str | None = None) -> None:
+def run(host: str = "0.0.0.0", port: int = 8765, config_path: str | None = None) -> None:
     server = SonarDeckServer((host, port), SonarDeckRequestHandler)
     server.state = SonarDeckApiState(config_path)
     print(f"SonarDeck Modern API running on http://{host}:{port}")
@@ -552,7 +552,7 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="SonarDeck modern UI local API")
-    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--config")
     args = parser.parse_args()

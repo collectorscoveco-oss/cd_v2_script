@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, Gamepad2, RefreshCcw, Save, Settings } from 'lucide-react'
 import { createRoot } from 'react-dom/client'
 import { ActionIcon, ICON_CHOICES } from './actionIcons'
+import { resolveApiBase } from './api-base.js'
 import './styles.css'
 
 type DeckButton = {
@@ -31,16 +32,18 @@ type State = {
   lastAction?: { ok: boolean; event?: string; action?: string; message: string }
 }
 
-const API = 'http://127.0.0.1:8765/api'
+const API_OVERRIDE_STORAGE_KEY = 'sonardeck.apiBaseOverride'
 
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(API + path, {
-    ...init,
-    headers: { 'content-type': 'application/json', ...(init?.headers || {}) },
-  })
-  const data = await res.json()
-  if (!data.ok) throw new Error(data.error || 'SonarDeck API error')
-  return data.state ?? data
+function createApiClient(base: string) {
+  return async function api<T>(path: string, init?: RequestInit): Promise<T> {
+    const res = await fetch(base + path, {
+      ...init,
+      headers: { 'content-type': 'application/json', ...(init?.headers || {}) },
+    })
+    const data = await res.json()
+    if (!data.ok) throw new Error(data.error || 'SonarDeck API error')
+    return data.state ?? data
+  }
 }
 
 function App() {
@@ -62,9 +65,17 @@ function App() {
   const [error, setError] = useState('')
   const [diagnostics, setDiagnostics] = useState<Diagnostics | null>(null)
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
+  const [apiBaseOverride, setApiBaseOverride] = useState(() => window.localStorage.getItem(API_OVERRIDE_STORAGE_KEY) ?? '')
+  const [apiBaseDraft, setApiBaseDraft] = useState(() => window.localStorage.getItem(API_OVERRIDE_STORAGE_KEY) ?? '')
   const longPressTimer = useRef<number | null>(null)
   const longPressFired = useRef(false)
 
+  useEffect(() => {
+    setApiBaseDraft(apiBaseOverride)
+  }, [apiBaseOverride])
+
+  const apiBase = useMemo(() => resolveApiBase(window.location, apiBaseOverride), [apiBaseOverride])
+  const api = useMemo(() => createApiClient(apiBase), [apiBase])
   async function refresh() {
     try {
       setError('')
@@ -77,6 +88,22 @@ function App() {
     } catch (err) {
       setError(String(err))
     }
+  }
+
+  function saveApiBaseOverride() {
+    const clean = apiBaseDraft.trim()
+    setApiBaseOverride(clean)
+    if (clean) {
+      window.localStorage.setItem(API_OVERRIDE_STORAGE_KEY, clean)
+    } else {
+      window.localStorage.removeItem(API_OVERRIDE_STORAGE_KEY)
+    }
+  }
+
+  function clearApiBaseOverride() {
+    setApiBaseOverride('')
+    setApiBaseDraft('')
+    window.localStorage.removeItem(API_OVERRIDE_STORAGE_KEY)
   }
 
   useEffect(() => {
@@ -317,6 +344,31 @@ function App() {
         </nav>
         <button className="ghost" onClick={refresh}><RefreshCcw size={16} /> Refresh bridge</button>
         <button className="ghost updateButton" onClick={updateApp}>Check / Install Updates</button>
+        <div className="connectionPanel">
+          <div className="sectionTitle compactTitle">
+            <h3>Connection</h3>
+            <span>LAN-friendly default</span>
+          </div>
+          <div className="connectionSummary">
+            <Activity size={16} />
+            <div>
+              <b>API base in use</b>
+              <code>{apiBase}</code>
+            </div>
+          </div>
+          <label>Manual API base override</label>
+          <input
+            value={apiBaseDraft}
+            onChange={(e) => setApiBaseDraft(e.target.value)}
+            placeholder="Optional: http://192.168.1.50:8765"
+          />
+          <div className="quickRow">
+            <button className="ghost" onClick={saveApiBaseOverride}>Save override</button>
+            <button className="ghost" onClick={clearApiBaseOverride}>Use current host</button>
+          </div>
+          <div className="hintBox smallHint">Default follows this device's hostname so a phone/tablet on the same network can talk to the PC bridge. Use an override only when the browser host and bridge host differ.</div>
+          <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
+        </div>
       </aside>
 
       <section className="content">
@@ -546,7 +598,7 @@ function App() {
               <>
                 <div className="sectionTitle"><h3>Hardware Status</h3><span>Ready for the Arduino phase.</span></div>
                 <div className="statusCard"><Settings /> Arduino: planned 10 buttons; Button 10 short=Play/Pause, hold=Next Page</div>
-                <div className="statusCard"><Activity /> Bridge API: http://127.0.0.1:8765</div>
+                <div className="statusCard"><Activity /> Bridge API: {apiBase}</div>
                 <button className="primary" onClick={runDiagnostics}>Run Sonar Diagnostics</button>
                 {diagnostics && (
                   <div className="diagnosticsBox">

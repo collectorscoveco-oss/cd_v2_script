@@ -20,6 +20,10 @@ This starts the Python API and React UI hidden, writes logs under `logs\`, and o
 http://127.0.0.1:5173
 ```
 
+The same launcher binds the bridge and dev server to `0.0.0.0`, so a phone/tablet on the same LAN can open `http://<pc-ip>:5173` and still reach the bridge.
+
+Use this only on a trusted LAN; the bridge is currently unauthenticated.
+
 To stop the hidden background processes:
 
 ```bat

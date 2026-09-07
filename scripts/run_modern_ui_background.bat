@@ -16,6 +16,7 @@ if errorlevel 1 (
 
 echo.
 echo SonarDeck Studio is starting in the background.
-echo Browser URL: http://127.0.0.1:5173
+echo Browser URL on this PC: http://127.0.0.1:5173
+echo LAN URL from another device: http://<pc-ip>:5173
 echo To stop it later, run: scripts\stop_modern_ui.bat
 timeout /t 4 >nul

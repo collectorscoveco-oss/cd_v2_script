@@ -36,7 +36,7 @@ End If
 ps = "Get-NetTCPConnection -LocalPort 8765,5173 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ } | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"
 shell.Run "powershell -NoProfile -ExecutionPolicy Bypass -Command """ & ps & """", 0, True
 
-cmd = "cmd /c cd /d """ & projectDir & """ && (py -3 -m bridge.web_api --host 127.0.0.1 --port 8765 || python -m bridge.web_api --host 127.0.0.1 --port 8765) >> """ & logDir & "\sonardeck-api.log"" 2>&1"
+cmd = "cmd /c cd /d """ & projectDir & """ && (py -3 -m bridge.web_api --host 0.0.0.0 --port 8765 || python -m bridge.web_api --host 0.0.0.0 --port 8765) >> """ & logDir & "\sonardeck-api.log"" 2>&1"
 shell.Run cmd, 0, False
 
 cmd = "cmd /c cd /d """ & uiDir & """ && npm run dev >> """ & logDir & "\sonardeck-ui.log"" 2>&1"
