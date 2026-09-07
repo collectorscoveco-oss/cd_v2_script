@@ -454,7 +454,7 @@ class SonarDeckApiState:
 
             message = (
                 "This looks like a release ZIP, so the in-app updater cannot run git pull here. "
-                f"Download the latest ZIP from {GITHUB_LATEST_RELEASE_URL}, extract it into a fresh folder, "
+                f"Open {GITHUB_LATEST_RELEASE_URL}, download the newest ZIP, extract it into a fresh folder, "
                 "and rerun scripts/run_release.bat."
             )
             self.append_log("Update fallback: release ZIP detected")

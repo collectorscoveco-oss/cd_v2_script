@@ -423,21 +423,21 @@ function App() {
           <div className="connectionSummary">
             <Activity size={16} />
             <div>
-              <b>Bridge URL in use</b>
+              <b>Bridge/server URL in use</b>
               <code>{apiBase}</code>
             </div>
           </div>
-          <label>Bridge / server URL override</label>
+          <label>Bridge/server URL override</label>
           <input
             value={apiBaseDraft}
             onChange={(e) => setApiBaseDraft(e.target.value)}
-            placeholder="Optional: http://192.168.1.50:8765 or https://bridge.example.com"
+            placeholder="Optional: http://192.168.1.50:8765, https://bridge.example.com, or a Cloudflare tunnel"
           />
           <div className="quickRow">
-            <button className="ghost" onClick={saveApiBaseOverride}>Save bridge URL</button>
+            <button className="ghost" onClick={saveApiBaseOverride}>Save bridge/server URL</button>
             <button className="ghost" onClick={clearApiBaseOverride}>Use current host</button>
           </div>
-          <div className="hintBox smallHint">Point this UI at the bridge PC, a Cloudflare tunnel URL, or another PC on your network. The bridge can live on the gaming PC or a separate server PC, while the deck UI runs wherever you want.</div>
+          <div className="hintBox smallHint">Point this UI at a local bridge PC, a Cloudflare tunnel URL, or another PC on the network. The bridge can live on the gaming PC or on a separate server PC; this UI can run wherever you need it.</div>
           <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
         </div>
         </aside>
