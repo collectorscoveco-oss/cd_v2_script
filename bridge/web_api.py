@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import mimetypes
 import subprocess
 import threading
 from http import HTTPStatus
@@ -454,6 +455,40 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_static_file(self, path: Path) -> bool:
+        static_root = getattr(self.server, "static_dir", None)
+        if not static_root:
+            return False
+        root = Path(static_root).resolve()
+        candidate = path.resolve()
+        if not str(candidate).startswith(str(root)) or not candidate.is_file():
+            return False
+        content_type = mimetypes.guess_type(candidate.name)[0] or "application/octet-stream"
+        data = candidate.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+        return True
+
+    def _serve_static_app(self, parsed_path: str) -> None:
+        static_root = getattr(self.server, "static_dir", None)
+        if not static_root:
+            self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
+            return
+        root = Path(static_root).resolve()
+        rel = parsed_path.lstrip("/")
+        candidate = (root / rel).resolve() if rel else root / "index.html"
+        if rel and candidate.is_file() and str(candidate).startswith(str(root)):
+            if self._send_static_file(candidate):
+                return
+        index = (root / "index.html").resolve()
+        if index.is_file() and str(index).startswith(str(root)):
+            if self._send_static_file(index):
+                return
+        self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
+
     def do_OPTIONS(self) -> None:  # noqa: N802
         self._send_json({"ok": True})
 
@@ -465,7 +500,7 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
             elif parsed.path == "/api/health":
                 self._send_json({"ok": True, "service": "sonardeck-modern-api"})
             else:
-                self._send_json({"ok": False, "error": "Not found"}, HTTPStatus.NOT_FOUND)
+                self._serve_static_app(parsed.path)
         except Exception as exc:
             self._send_json({"ok": False, "error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -539,11 +574,14 @@ class SonarDeckRequestHandler(BaseHTTPRequestHandler):
 
 class SonarDeckServer(ThreadingHTTPServer):
     state: SonarDeckApiState
+    static_dir: Path | None
 
 
-def run(host: str = "0.0.0.0", port: int = 8765, config_path: str | None = None) -> None:
+def run(host: str = "0.0.0.0", port: int = 8765, config_path: str | None = None, static_dir: str | None = None) -> None:
     server = SonarDeckServer((host, port), SonarDeckRequestHandler)
     server.state = SonarDeckApiState(config_path)
+    resolved_static_dir = Path(static_dir).resolve() if static_dir else Path(__file__).resolve().parents[1] / "ui" / "dist"
+    server.static_dir = resolved_static_dir if resolved_static_dir.is_dir() else None
     print(f"SonarDeck Modern API running on http://{host}:{port}")
     server.serve_forever()
 
@@ -555,8 +593,9 @@ def main() -> None:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--config")
+    parser.add_argument("--static-dir")
     args = parser.parse_args()
-    run(args.host, args.port, args.config)
+    run(args.host, args.port, args.config, args.static_dir)
 
 
 if __name__ == "__main__":

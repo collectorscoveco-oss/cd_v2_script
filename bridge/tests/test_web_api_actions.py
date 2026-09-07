@@ -130,6 +130,7 @@ def test_run_defaults_to_lan_binding(monkeypatch):
             seen["address"] = address
             seen["handler"] = handler
             self.state = None
+            self.static_dir = None
 
         def serve_forever(self):
             seen["served"] = True
@@ -141,6 +142,33 @@ def test_run_defaults_to_lan_binding(monkeypatch):
 
     assert seen["address"] == ("0.0.0.0", 8765)
     assert seen["served"] is True
+    assert seen["static_dir"] is None
+
+
+def test_run_accepts_explicit_static_dir(monkeypatch, tmp_path):
+    seen = {}
+    static_dir = tmp_path / "ui" / "dist"
+    static_dir.mkdir(parents=True)
+    (static_dir / "index.html").write_text("<html></html>")
+
+    class FakeServer:
+        def __init__(self, address, handler):
+            seen["address"] = address
+            seen["handler"] = handler
+            self.state = None
+            self.static_dir = None
+
+        def serve_forever(self):
+            seen["served"] = True
+
+    monkeypatch.setattr("bridge.web_api.SonarDeckServer", FakeServer)
+    monkeypatch.setattr("bridge.web_api.SonarDeckApiState", lambda config_path=None: {"config_path": config_path})
+
+    run(static_dir=str(static_dir))
+
+    assert seen["address"] == ("0.0.0.0", 8765)
+    assert seen["served"] is True
+    assert str(seen["static_dir"]).endswith("ui/dist")
 
 
 def test_run_diagnostics_reports_missing_sonar_api_base():
