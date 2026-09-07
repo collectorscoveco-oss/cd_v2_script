@@ -10,7 +10,7 @@ For the easiest public-use install, download the latest GitHub Release ZIP, extr
 scripts\run_release.bat
 ```
 
-That package includes the built web UI and the Python bridge, so users do not need to build the frontend first. The release launcher opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the package on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI.
+That package includes the built web UI and the Python bridge, so users do not need to build the frontend first. The release launcher opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the package on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI. In the UI, the connection field is the bridge/server URL, so point it at the local bridge PC, a Cloudflare tunnel URL, or another PC on the network.
 
 ## What it does
 

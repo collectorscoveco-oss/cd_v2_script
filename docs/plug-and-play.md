@@ -35,7 +35,7 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 - F1-F9 and Ctrl+Alt+1..9 shortcuts while the window is focused
 - profile-switch audio modes: `off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`
 - a Test Current sound button and WAV picker
-- a bridge/server URL override for pointing the UI at a bridge PC, a Cloudflare tunnel URL, or another PC on the LAN while the bridge itself can live on the gaming PC or a separate server PC
+- a bridge/server URL override for pointing the UI at a local bridge PC, a Cloudflare tunnel URL, or another PC on the LAN while the bridge itself can live on the gaming PC or a separate server PC
 
 ## If your config is old
 

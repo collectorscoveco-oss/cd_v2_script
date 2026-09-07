@@ -40,7 +40,7 @@ That starts:
 - Simplified Button Setup modes: Use existing action, Open an `.exe`, or Open website/protocol
 - Brand/logo icon system for current and future buttons using `simple-icons` plus Lucide fallbacks; see `docs/icons.md`
 - Sidebar Check / Install Updates button runs `git pull --ff-only` and `npm install --prefix ui` through the local bridge API when this is a git checkout; release ZIPs open the latest GitHub release page so end users can download the fresh ZIP and rerun `scripts/run_release.bat`
-- Connection panel calls out the bridge/server URL so the deck UI can point at a bridge PC, a Cloudflare tunnel URL, or another PC on the network
+- Connection panel calls out the bridge/server URL so the deck UI can point at a local bridge PC, a Cloudflare tunnel URL, or another PC on the network
 - Launchers run `npm install` before starting the UI so newly added frontend packages such as `simple-icons` are installed after `git pull`
 - Automatic icon matching also checks the configured app path / `.exe` filename, so newly added apps can find a matching brand icon without manual setup
 - Button Setup includes a manual Button Icon picker with Auto, brand logos, and generic fallback icons; selected overrides are saved per page/button

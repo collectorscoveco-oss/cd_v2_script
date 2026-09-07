@@ -48,7 +48,7 @@ echo Stopping any old SonarDeck listeners on port 8766...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 8766 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ } | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }" >nul 2>nul
 
 echo Starting release server on %LAN_URL% ...
-echo This PC is the bridge/server. A gaming PC, tablet, or phone can control it by opening the UI and pointing it at this bridge URL.
+echo This PC is the bridge/server. The deck UI on a gaming PC, tablet, or phone should point at this bridge URL.
 start "SonarDeck Release" cmd /k "cd /d ""%cd%"" && %PYTHON_CMD% -m bridge.web_api --host 0.0.0.0 --port 8766"
 
 timeout /t 3 >nul
