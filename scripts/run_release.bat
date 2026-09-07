@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 title SonarDeck Studio Release
 cd /d "%~dp0.."
 
@@ -29,17 +29,32 @@ if not exist "bridge\config.json" (
   copy "bridge\config.example.json" "bridge\config.json" >nul
 )
 
-echo Stopping any old SonarDeck listeners on port 8765...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 8765 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ } | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }" >nul 2>nul
+for /f "usebackq delims=" %%I in (`powershell -NoProfile -Command "$ip = (Get-NetIPAddress -AddressFamily IPv4 ^| Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254*' -and $_.IPAddress -notlike '172.20.*' } ^| Select-Object -First 1 -ExpandProperty IPAddress); if (-not $ip) { $ip = '127.0.0.1' }; $ip"`) do set "LAN_IP=%%I"
+if not defined LAN_IP set "LAN_IP=127.0.0.1"
+set "LAN_URL=http://%LAN_IP%:8766"
 
-echo Starting release server on http://127.0.0.1:8765 ...
-start "SonarDeck Release" cmd /k "cd /d ""%cd%"" && %PYTHON_CMD% -m bridge.web_api --host 0.0.0.0 --port 8765"
+net session >nul 2>nul
+if errorlevel 1 (
+  echo Admin permission is required once to open port 8766 in Windows Firewall.
+  echo Approve the UAC prompt, then run the launcher again if needed.
+  echo.
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+  exit /b 0
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "if (-not (Get-NetFirewallRule -DisplayName 'SonarDeck Studio Release 8766' -ErrorAction SilentlyContinue)) { New-NetFirewallRule -DisplayName 'SonarDeck Studio Release 8766' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8766 | Out-Null }"
+
+echo Stopping any old SonarDeck listeners on port 8766...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 8766 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ } | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }" >nul 2>nul
+
+echo Starting release server on %LAN_URL% ...
+start "SonarDeck Release" cmd /k "cd /d ""%cd%"" && %PYTHON_CMD% -m bridge.web_api --host 0.0.0.0 --port 8766"
 
 timeout /t 3 >nul
-start http://127.0.0.1:8765
+start "" "%LAN_URL%"
 
 echo.
-echo If the browser does not load immediately, wait 5-10 seconds and refresh.
-echo Use the browser URL above on another device to open the same release on your LAN.
+echo Local PC URL: %LAN_URL%
+echo If another device cannot connect, confirm it is using the same Wi-Fi/LAN and that Windows Firewall approved the port.
 echo.
 pause
