@@ -12,6 +12,8 @@ scripts\run_release.bat
 
 That package includes the built web UI and the Python bridge, so users do not need to build the frontend first. The release launcher opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the package on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI. In the UI, the connection field is the bridge/server URL, so point it at the local bridge PC, a Cloudflare tunnel URL, or another PC on the network.
 
+The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while release ZIPs open the latest GitHub release page so you can download the updated ZIP and rerun the release launcher.
+
 ## What it does
 
 - Big touch-friendly deck buttons

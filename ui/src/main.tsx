@@ -437,7 +437,7 @@ function App() {
             <button className="ghost" onClick={saveApiBaseOverride}>Save bridge/server URL</button>
             <button className="ghost" onClick={clearApiBaseOverride}>Use current host</button>
           </div>
-          <div className="hintBox smallHint">Point this UI at a local bridge PC, a Cloudflare tunnel URL, or another PC on the network. The bridge can live on the gaming PC or on a separate server PC; this UI can run wherever you need it.</div>
+          <div className="hintBox smallHint">Point this UI at a local bridge PC, a Cloudflare tunnel URL, or another PC on the network. The bridge can live on the gaming PC or on a separate server PC; this UI can run wherever you need it. If you are on a release ZIP, the update button will open the latest release page instead of trying to run git pull.</div>
           <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
         </div>
         </aside>
