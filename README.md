@@ -9,44 +9,45 @@ Ideal for creating your own customizable macro deck or personal launcher.
 
 - A Windows PC
 - Python 3.11 or higher
-- Internet connection (only for the initial setup)
+- Node.js LTS
+- Internet connection for the first install
 
 ---
 
-## 🐍 Step 1 – Install Python
+## ▶️ Install / run the modern web deck
 
-1. Go to 👉 [https://www.python.org/downloads/](https://www.python.org/downloads/)
-2. Download the latest version of Python 3
-3. During installation, **check the box** ✅ **"Add Python to PATH"**
-4. Click **Install Now**
+1. Download or clone the repo.
+2. Open a Command Prompt in the project folder.
+3. Run:
 
----
-
-## 📦 Step 2 – Install required libraries
-
-1. Open the Start menu
-2. Type `cmd` and press Enter
-3. In the terminal window, paste the following command:
-
-```bash
-pip install pygame pyperclip pyserial
+```bat
+scripts\run_modern_ui.bat
 ```
 
-If you get an error like `'pip' is not recognized`, try restarting your PC.
+That launcher will:
+
+- install the UI dependencies
+- start the Python bridge
+- start the web app
+- open the browser on the deck UI
+
+If you want the native desktop/Tauri version instead, use:
+
+```bat
+scripts\run_desktop_app.bat
+```
 
 ---
 
-## ▶️ Step 3 – Run ConsoleDeck
+## 📦 If you only want the PC bridge setup
 
-1. Download all project files into a folder (e.g., Desktop)
-2. Open that folder in the terminal (`cmd`)
-3. Start the app with this command:
+You can also install the Python bridge requirements directly:
 
-```bash
-python main.py --gui
+```bat
+py -3 -m pip install -r bridge\requirements.txt
 ```
 
-If everything is set up correctly, a graphical window will open.
+That package list is intentionally small. You do **not** need the old `pygame pyperclip pyserial` ConsoleDeck instructions for the new web deck.
 
 ---
 
