@@ -1,9 +1,10 @@
 import json
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 from bridge.config import migrate_config
-from bridge.web_api import SonarDeckApiState, action_category, run
+from bridge.web_api import GITHUB_LATEST_RELEASE_URL, SonarDeckApiState, action_category, run
 
 
 def _temp_config():
@@ -132,6 +133,11 @@ def test_run_defaults_to_lan_binding(monkeypatch):
             self.state = None
             self.static_dir = None
 
+        def __setattr__(self, name, value):
+            if name == "static_dir":
+                seen[name] = value
+            object.__setattr__(self, name, value)
+
         def serve_forever(self):
             seen["served"] = True
 
@@ -142,7 +148,8 @@ def test_run_defaults_to_lan_binding(monkeypatch):
 
     assert seen["address"] == ("0.0.0.0", 8765)
     assert seen["served"] is True
-    assert seen["static_dir"] is None
+    expected_static_dir = Path("ui/dist").resolve() if Path("ui/dist").is_dir() else None
+    assert seen["static_dir"] == expected_static_dir
 
 
 def test_run_accepts_explicit_static_dir(monkeypatch, tmp_path):
@@ -157,6 +164,11 @@ def test_run_accepts_explicit_static_dir(monkeypatch, tmp_path):
             seen["handler"] = handler
             self.state = None
             self.static_dir = None
+
+        def __setattr__(self, name, value):
+            if name == "static_dir":
+                seen[name] = value
+            object.__setattr__(self, name, value)
 
         def serve_forever(self):
             seen["served"] = True
@@ -180,4 +192,48 @@ def test_run_diagnostics_reports_missing_sonar_api_base():
     diagnostics = snap["diagnostics"]
     assert any("not discovered" in line for line in diagnostics["summary"])
     assert diagnostics["probe"] == []
+
+
+def test_update_app_runs_git_flow_inside_checkout(monkeypatch, tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / ".git").mkdir()
+    calls = []
+
+    def fake_run(command, cwd, text, capture_output, timeout, shell):
+        calls.append((command, cwd, shell))
+        return SimpleNamespace(stdout=f"{command} ok", stderr="", returncode=0)
+
+    monkeypatch.setattr("bridge.web_api.repo_root", lambda: root)
+    monkeypatch.setattr("bridge.web_api.subprocess.run", fake_run)
+    state = SonarDeckApiState(_temp_config())
+
+    result = state.update_app()
+
+    assert result["mode"] == "git"
+    assert result["snapshot"]["lastAction"]["ok"] is True
+    assert calls == [
+        ("git pull --ff-only", root, True),
+        ("npm install --prefix ui", root, True),
+    ]
+
+
+def test_update_app_falls_back_to_release_url_outside_checkout(monkeypatch, tmp_path):
+    root = tmp_path / "release"
+    root.mkdir()
+
+    def fail_run(*args, **kwargs):
+        raise AssertionError("subprocess.run should not be called in release mode")
+
+    monkeypatch.setattr("bridge.web_api.repo_root", lambda: root)
+    monkeypatch.setattr("bridge.web_api.subprocess.run", fail_run)
+    state = SonarDeckApiState(_temp_config())
+
+    result = state.update_app()
+
+    assert result["mode"] == "release"
+    assert result["update_url"] == GITHUB_LATEST_RELEASE_URL
+    assert "Download the latest ZIP" in result["message"]
+    assert "scripts/run_release.bat" in result["message"]
+    assert result["snapshot"]["lastAction"]["ok"] is True
 

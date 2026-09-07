@@ -24,7 +24,7 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 - live Sonar mixer bars for Game/Chat/Media/Mic
 - profile-colored pages
 - polished Stream Deck-style button cards with action category colors and no hover color changes
-- a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode; updates use `git pull --ff-only`, block if local project files changed, and can restart the Virtual Controller
+- a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode; updates use `git pull --ff-only` in a git checkout, and release ZIPs open the latest GitHub release page so you can download the updated ZIP and rerun `scripts\run_release.bat`
 - Edit Mapping Mode: click a deck button to select it for editing instead of firing it
 - editable button names and control mappings saved to `bridge\config.json`
 - an Action Type filter so the mapping list is not one giant dropdown
@@ -35,6 +35,7 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 - F1-F9 and Ctrl+Alt+1..9 shortcuts while the window is focused
 - profile-switch audio modes: `off`, `beep`, `profile_beeps`, `terminal_bell`, `system`, `file`, `profile_files`, `voice`
 - a Test Current sound button and WAV picker
+- a bridge/server URL override for pointing the UI at a bridge PC, a Cloudflare tunnel URL, or another PC on the LAN while the bridge itself can live on the gaming PC or a separate server PC
 
 ## If your config is old
 

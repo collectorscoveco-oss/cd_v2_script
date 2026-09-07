@@ -78,6 +78,16 @@ ACTION_LABELS = {
     "app.open.youtube": "Open YouTube",
 }
 
+GITHUB_LATEST_RELEASE_URL = "https://github.com/collectorscoveco-oss/cd_v2_script/releases/latest"
+
+
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def is_git_checkout(root: Path) -> bool:
+    return (root / ".git").exists()
+
 
 def action_target(config: dict, action: str | None) -> str:
     if not action:
@@ -413,32 +423,43 @@ class SonarDeckApiState:
 
     def update_app(self) -> dict:
         with self.lock:
-            root = Path(__file__).resolve().parents[1]
-            commands = [
-                "git pull --ff-only",
-                "npm install --prefix ui",
-            ]
-            output: list[str] = []
-            for command in commands:
-                try:
-                    result = subprocess.run(command, cwd=root, text=True, capture_output=True, timeout=180, shell=True)
-                except FileNotFoundError as exc:
-                    self.append_log(f"Update failed: could not start command shell for {command}")
-                    raise RuntimeError(
-                        "Update could not start because Windows could not find a required command runner. "
-                        "Try updating from Command Prompt with: git pull && npm install --prefix ui"
-                    ) from exc
-                if result.stdout.strip():
-                    output.append(f"$ {command}\n{result.stdout.strip()}")
-                if result.stderr.strip():
-                    output.append(f"$ {command} [stderr]\n{result.stderr.strip()}")
-                if result.returncode != 0:
-                    self.append_log(f"Update failed: {command}")
-                    detail = "\n".join(output[-2:]) or f"Command exited with code {result.returncode}"
-                    raise RuntimeError("Update failed while running " + command + "\n" + detail)
-            self.reload()
-            self.append_log("Update complete. Restart SonarDeck Studio if the UI does not refresh automatically.")
-            return self.snapshot()
+            root = repo_root()
+            if is_git_checkout(root):
+                commands = [
+                    "git pull --ff-only",
+                    "npm install --prefix ui",
+                ]
+                output: list[str] = []
+                for command in commands:
+                    try:
+                        result = subprocess.run(command, cwd=root, text=True, capture_output=True, timeout=180, shell=True)
+                    except FileNotFoundError as exc:
+                        self.append_log(f"Update failed: could not start command shell for {command}")
+                        raise RuntimeError(
+                            "Update could not start because Windows could not find a required command runner. "
+                            "Try updating from Command Prompt with: git pull && npm install --prefix ui"
+                        ) from exc
+                    if result.stdout.strip():
+                        output.append(f"$ {command}\n{result.stdout.strip()}")
+                    if result.stderr.strip():
+                        output.append(f"$ {command} [stderr]\n{result.stderr.strip()}")
+                    if result.returncode != 0:
+                        self.append_log(f"Update failed: {command}")
+                        detail = "\n".join(output[-2:]) or f"Command exited with code {result.returncode}"
+                        raise RuntimeError("Update failed while running " + command + "\n" + detail)
+                self.reload()
+                message = "Dev checkout updated. Restart SonarDeck Studio if the UI does not refresh automatically."
+                self.append_log(message)
+                return {"mode": "git", "message": message, "snapshot": self.snapshot()}
+
+            message = (
+                "This looks like a release ZIP, so the in-app updater cannot run git pull here. "
+                f"Download the latest ZIP from {GITHUB_LATEST_RELEASE_URL}, extract it into a fresh folder, "
+                "and rerun scripts/run_release.bat."
+            )
+            self.append_log("Update fallback: release ZIP detected")
+            self.append_log(message)
+            return {"mode": "release", "message": message, "update_url": GITHUB_LATEST_RELEASE_URL, "snapshot": self.snapshot()}
 
 
 class SonarDeckRequestHandler(BaseHTTPRequestHandler):

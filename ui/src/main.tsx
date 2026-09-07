@@ -21,6 +21,7 @@ type DeckButton = {
 type Profile = { key: string; name: string }
 type Action = { id: string; label: string; category: string; target?: string; editableTarget?: boolean }
 type Diagnostics = { summary: string[]; probe: { endpoint?: string; base?: string; ok?: boolean; error?: string; data?: unknown }[] }
+type UpdateResponse = { mode: 'git' | 'release'; message: string; snapshot: State; update_url?: string }
 type State = {
   profile: { key: string; name: string; theme: { accent: string; panel: string } }
   profiles: Profile[]
@@ -357,13 +358,25 @@ function App() {
   }
 
   async function updateApp() {
-    const ok = window.confirm('Check for updates now? This will run git pull and npm install. Restart SonarDeck after it finishes if the UI does not refresh automatically.')
+    const ok = window.confirm('Check for updates now? Dev checkouts run git pull + npm install; release ZIPs open the latest GitHub release page so you can download the updated ZIP and rerun scripts/run_release.bat.')
     if (!ok) return
     try {
       setError('')
-      const next = await api<State>('/update', { method: 'POST', body: JSON.stringify({}) })
-      setState(next)
-      window.alert('Update complete. Restart SonarDeck Studio if the UI does not refresh automatically.')
+      const res = await fetch(apiBase + '/update', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json() as { ok: boolean; error?: string; state?: UpdateResponse }
+      if (!data.ok) throw new Error(data.error || 'Update failed')
+      const payload = data.state
+      if (!payload) return
+      if (payload.snapshot) setState(payload.snapshot)
+      if (payload.mode === 'release' && payload.update_url) {
+        const opened = window.open(payload.update_url, '_blank', 'noopener,noreferrer')
+        if (!opened) window.location.href = payload.update_url
+      }
+      window.alert(payload.message)
     } catch (err) {
       setError(String(err))
     }
@@ -405,26 +418,26 @@ function App() {
         <div className="connectionPanel">
           <div className="sectionTitle compactTitle">
             <h3>Connection</h3>
-            <span>LAN-friendly default</span>
+            <span>Bridge/server URL</span>
           </div>
           <div className="connectionSummary">
             <Activity size={16} />
             <div>
-              <b>API base in use</b>
+              <b>Bridge URL in use</b>
               <code>{apiBase}</code>
             </div>
           </div>
-          <label>Manual API base override</label>
+          <label>Bridge / server URL override</label>
           <input
             value={apiBaseDraft}
             onChange={(e) => setApiBaseDraft(e.target.value)}
-            placeholder="Optional: http://192.168.1.50:8765"
+            placeholder="Optional: http://192.168.1.50:8765 or https://bridge.example.com"
           />
           <div className="quickRow">
-            <button className="ghost" onClick={saveApiBaseOverride}>Save override</button>
+            <button className="ghost" onClick={saveApiBaseOverride}>Save bridge URL</button>
             <button className="ghost" onClick={clearApiBaseOverride}>Use current host</button>
           </div>
-          <div className="hintBox smallHint">Default follows this device's hostname so a phone/tablet on the same network can talk to the PC bridge. Use an override only when the browser host and bridge host differ.</div>
+          <div className="hintBox smallHint">Point this UI at the bridge PC, a Cloudflare tunnel URL, or another PC on your network. The bridge can live on the gaming PC or a separate server PC, while the deck UI runs wherever you want.</div>
           <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
         </div>
         </aside>
