@@ -87,6 +87,49 @@ h2 { font-size: 32px; }
 h3 { font-size: 18px; }
 .profilePills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .profilePills button { text-align: center; padding: 9px 12px; }
+.topbarActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
+.topbarActions .ghost { white-space: nowrap; }
+.connectionChip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.3);
+  color: #cbd5e1;
+}
+.connectionChip svg { color: var(--accent); flex: 0 0 auto; }
+.connectionChip span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #94a3b8; }
+.connectionChip b { display: block; font-size: 12px; color: white; }
+.deckFocusPanel { min-height: calc(100vh - 156px); display: flex; flex-direction: column; gap: 18px; }
+.deckSectionTitle { margin-bottom: 0; align-items: center; }
+.deckSectionTitle > div { display: grid; gap: 6px; }
+.deckSectionTitle span { max-width: 52ch; }
+.deckGridDeckMode {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+}
+.deckMode .topbar { padding: 16px 18px; }
+.deckMode .topbar p { margin-top: 6px; color: #94a3b8; max-width: 50ch; }
+.deckMode .content { padding: 18px; }
+.deckMode .workspace,
+.deckMode .logBar,
+.deckMode .inspector,
+.deckMode .sidebar {
+  display: none;
+}
+.deckMode .deckPanel { padding: 18px; }
+.deckMode .deckCard {
+  min-height: 210px;
+  padding: 18px;
+  border-radius: 28px;
+}
+.deckMode .deckCard strong { font-size: 24px; line-height: 1.02; }
+.deckMode .deckCard small { font-size: 13px; }
+.deckMode .cardTop { font-size: 13px; }
+.deckMode .cardIcon { margin-top: 22px; }
+.deckMode .cardIcon svg { width: 44px; height: 44px; }
 .error { border: 1px solid rgba(248, 113, 113, .34); background: rgba(127, 29, 29, .38); color: #fecaca; border-radius: 18px; padding: 12px 14px; }
 .actionStatus { border-radius: 18px; padding: 12px 14px; font-size: 13px; }
 .actionStatus.ok { border: 1px solid rgba(34, 197, 94, .32); background: rgba(20, 83, 45, .24); color: #bbf7d0; }
@@ -195,6 +238,8 @@ code { display: block; color: #cbd5e1; background: rgba(15, 23, 42, .7); padding
   .sidebar { padding: 16px; gap: 14px; }
   h2 { font-size: 26px; }
   .deckGrid { grid-template-columns: 1fr; }
+  .deckMode .deckGridDeckMode { grid-template-columns: 1fr; }
+  .deckMode .deckCard { min-height: 166px; }
   .playCard { grid-column: auto; }
   .colorPickerRow, .iconPickerRow { grid-template-columns: 1fr; }
   .iconPreview { width: 100%; height: 52px; }

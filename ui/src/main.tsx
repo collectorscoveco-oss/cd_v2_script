@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Activity, Gamepad2, RefreshCcw, Save, Settings } from 'lucide-react'
+import { Activity, Gamepad2, Maximize2, Minimize2, RefreshCcw, Save, Settings } from 'lucide-react'
 import { createRoot } from 'react-dom/client'
 import { ActionIcon, ICON_CHOICES } from './actionIcons'
 import { resolveApiBase } from './api-base.js'
@@ -65,6 +65,8 @@ function App() {
   const [error, setError] = useState('')
   const [diagnostics, setDiagnostics] = useState<Diagnostics | null>(null)
   const [tab, setTab] = useState<'mapping' | 'actions' | 'profiles' | 'hardware'>('mapping')
+  const [viewMode, setViewMode] = useState<'editor' | 'deck'>('editor')
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [apiBaseOverride, setApiBaseOverride] = useState(() => window.localStorage.getItem(API_OVERRIDE_STORAGE_KEY) ?? '')
   const [apiBaseDraft, setApiBaseDraft] = useState(() => window.localStorage.getItem(API_OVERRIDE_STORAGE_KEY) ?? '')
   const longPressTimer = useRef<number | null>(null)
@@ -76,6 +78,52 @@ function App() {
 
   const apiBase = useMemo(() => resolveApiBase(window.location, apiBaseOverride), [apiBaseOverride])
   const api = useMemo(() => createApiClient(apiBase), [apiBase])
+
+  useEffect(() => {
+    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement))
+    syncFullscreen()
+    document.addEventListener('fullscreenchange', syncFullscreen)
+    return () => document.removeEventListener('fullscreenchange', syncFullscreen)
+  }, [])
+
+  async function requestDeckFullscreen() {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen()
+      } catch {
+        // Fullscreen is optional; keep deck mode even if the browser blocks it.
+      }
+    }
+  }
+
+  async function enterDeckMode() {
+    setViewMode('deck')
+    await requestDeckFullscreen()
+  }
+
+  async function exitDeckMode() {
+    setViewMode('editor')
+    if (document.fullscreenElement && document.exitFullscreen) {
+      try {
+        await document.exitFullscreen()
+      } catch {
+        // Ignore and continue back to the editor.
+      }
+    }
+  }
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen()
+      } else if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen()
+      }
+    } catch (err) {
+      setError(String(err))
+    }
+  }
+
   async function refresh() {
     try {
       setError('')
@@ -108,8 +156,7 @@ function App() {
 
   useEffect(() => {
     refresh()
-  }, [])
-
+  }, [apiBase])
   useEffect(() => {
     setLabelDraft(selected?.label ?? '')
     setActionDraft(selected?.action ?? '')
@@ -120,6 +167,14 @@ function App() {
   }, [selected?.event, selected?.action, selected?.icon, selected?.color, selected?.customColor])
 
   const accent = state?.profile.theme.accent ?? '#32d3ff'
+  const connectionHost = useMemo(() => {
+    try {
+      return new URL(apiBase).host
+    } catch {
+      return apiBase
+    }
+  }, [apiBase])
+  const connectionStatus = state ? 'Connected' : error ? 'Disconnected' : 'Connecting...'
   const actionGroups = useMemo(() => {
     const groups: Record<string, Action[]> = {}
     for (const action of state?.actions ?? []) {
@@ -325,9 +380,12 @@ function App() {
     }
   }
 
+  const deckMode = viewMode === 'deck'
+
   return (
-    <main className="app" style={{ '--accent': accent } as React.CSSProperties}>
-      <aside className="sidebar">
+    <main className={`app ${deckMode ? 'deckMode' : ''}`} style={{ '--accent': accent } as React.CSSProperties}>
+      {!deckMode && (
+        <aside className="sidebar">
         <div className="brand">
           <div className="brandIcon"><Gamepad2 size={24} /></div>
           <div>
@@ -369,31 +427,89 @@ function App() {
           <div className="hintBox smallHint">Default follows this device's hostname so a phone/tablet on the same network can talk to the PC bridge. Use an override only when the browser host and bridge host differ.</div>
           <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
         </div>
-      </aside>
+        </aside>
+      )}
 
       <section className="content">
         <header className="topbar">
           <div>
-            <span className="eyebrow">Current page</span>
+            <span className="eyebrow">{deckMode ? 'Deck mode' : 'Current page'}</span>
             <h2>{state?.profile.name ?? 'Loading...'}</h2>
+            {deckMode && <p>Buttons only. Leave the deck with the editor button or fullscreen toggle.</p>}
           </div>
-          <div className="profilePills">
-            {state?.profiles.map((profile) => (
-              <button key={profile.key} className={profile.key === state.profile.key ? 'selected' : ''} onClick={() => switchProfile(profile.key)}>
-                {profile.name}
-              </button>
-            ))}
+          <div className="topbarActions">
+            {deckMode ? (
+              <>
+                <button className="ghost" onClick={exitDeckMode}><Minimize2 size={16} /> Exit to editor</button>
+                <button className="ghost" onClick={toggleFullscreen}>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</button>
+              </>
+            ) : (
+              <>
+                <button className="ghost" onClick={enterDeckMode}><Maximize2 size={16} /> Deck mode</button>
+                <button className="ghost" onClick={toggleFullscreen}>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</button>
+                <button className="ghost" onClick={refresh}><RefreshCcw size={16} /> Refresh bridge</button>
+                <button className="ghost updateButton" onClick={updateApp}>Check / Install Updates</button>
+              </>
+            )}
+            <div className="connectionChip">
+              <Activity size={14} />
+              <div>
+                <span>{connectionStatus}</span>
+                <b>{connectionHost}</b>
+              </div>
+            </div>
+            <div className="profilePills">
+              {state?.profiles.map((profile) => (
+                <button key={profile.key} className={profile.key === state.profile.key ? 'selected' : ''} onClick={() => switchProfile(profile.key)}>
+                  {profile.name}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 
         {error && <div className="error">{error}</div>}
-        {state?.lastAction?.message && (
+        {!deckMode && state?.lastAction?.message && (
           <div className={state.lastAction.ok ? 'actionStatus ok' : 'actionStatus bad'}>
             Last button: {state.lastAction.message}
           </div>
         )}
 
-        <div className="workspace">
+        {deckMode ? (
+          <section className="deckPanel deckFocusPanel">
+            <div className="sectionTitle deckSectionTitle">
+              <div>
+                <h3>Virtual Deck</h3>
+                <span>Touch-friendly deck mode. Only the deck and exit controls stay visible.</span>
+              </div>
+              <button className="ghost" onClick={exitDeckMode}><Minimize2 size={16} /> Back to editor</button>
+            </div>
+            <div className="deckGrid deckGridDeckMode">
+              {state?.buttons.map((button) => (
+                <button
+                  key={button.event}
+                  className={`deckCard ${button.event === 'BTN_10_PRESS' ? 'playCard' : ''} ${selected?.event === button.event ? 'picked' : ''}`}
+                  onMouseDown={() => buttonDown(button)}
+                  onMouseUp={() => buttonUp(button)}
+                  onMouseLeave={() => buttonUp(button)}
+                  onTouchStart={() => buttonDown(button)}
+                  onTouchEnd={() => buttonUp(button)}
+                  onClick={() => buttonClick(button)}
+                  onContextMenu={(e) => { e.preventDefault(); setSelected(button) }}
+                  style={{ '--cardColor': button.color } as React.CSSProperties}
+                >
+                  <div className="stripe" />
+                  <div className="cardTop"><span>{button.index}</span><b>{button.category}</b></div>
+                  <div className="cardIcon"><ActionIcon action={button.action} label={button.label} category={button.category} target={button.target} icon={button.icon} size={44} /></div>
+                  <strong>{button.label}</strong>
+                  <small>{button.event.replace('_PRESS', '')}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <>
+            <div className="workspace">
           <section className="deckPanel">
             <div className="sectionTitle">
               <h3>Virtual Deck</h3>
@@ -618,6 +734,8 @@ function App() {
         <footer className="logBar">
           {(state?.log ?? []).slice(-4).map((line, idx) => <span key={idx}>{line}</span>)}
         </footer>
+      </>
+        )}
       </section>
     </main>
   )
