@@ -18,7 +18,8 @@
 ## What to use on another device
 
 - **Do not** use `127.0.0.1` on your phone or tablet.
-- Use the bridge/server PC's printed LAN URL, such as `http://192.168.x.x:8766`
+- Use the bridge/server PC's printed LAN URL, such as `http://10.0.0.142:8766`
+- Your tablet/phone must be on the same Wi-Fi/LAN subnet, not guest Wi-Fi
 - If you use a tunnel, open the tunnel URL instead
 
 ## If something is confusing

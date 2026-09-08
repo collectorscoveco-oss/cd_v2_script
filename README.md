@@ -20,6 +20,7 @@ Read the short guide first:
 2. Extract it on the bridge/server PC.
 3. Run `scripts\run_release.bat`.
 4. Use the local URL on that PC, or the LAN/tunnel URL on another device.
+   - Other devices must be on the same Wi-Fi/LAN subnet, or they need a tunnel.
 
 The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while release ZIPs open the latest GitHub release page so you can download the newer ZIP and rerun `scripts\run_release.bat`.
 

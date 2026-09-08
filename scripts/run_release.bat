@@ -60,6 +60,7 @@ start "" "%LAN_URL%"
 
 echo.
 echo Local PC URL: %LAN_URL%
-echo If another device cannot connect, confirm it is using the same Wi-Fi/LAN and that Windows Firewall approved the port.
+echo If another device cannot connect, confirm it is on the same Wi-Fi/LAN subnet as this PC.
+echo If it is on guest Wi-Fi or a different subnet, use Tailscale or a Cloudflare tunnel instead.
 echo.
 pause
