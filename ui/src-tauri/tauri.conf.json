@@ -37,6 +37,6 @@
     ],
     "category": "Utility",
     "shortDescription": "Native control surface for SteelSeries Sonar and apps",
-    "longDescription": "SonarDeck Studio is a native Windows desktop shell for the SonarDeck controller UI. It talks to the local Python bridge for SteelSeries Sonar, hotkeys, app launching, profiles, colors, and icons."
+    "longDescription": "SonarDeck Studio is a native Windows desktop shell for the SonarDeck controller UI. It talks to the local Python bridge for SteelSeries Sonar, hotkeys, app launching, profiles, colors, and icons. The packaged shell does not yet bundle the Python bridge; the all-in-one release ZIP remains the public install path until bridge packaging lands."
   }
 }

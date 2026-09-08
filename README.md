@@ -4,13 +4,15 @@ A touch-friendly web Stream Deck for phone, tablet, and desktop.
 
 ## Download
 
-For the easiest public-use install, download the latest GitHub Release Windows installer and double-click the NSIS `.exe` setup file.
+For the easiest public-use install, download the latest GitHub Release ZIP, extract it, and run:
 
-Use the MSI only if you specifically need it for managed installation.
+```bat
+scripts\run_release.bat
+```
 
-After install, launch SonarDeck Studio from the Start menu. The installed app includes the built web UI and the Python bridge, so users do not need to build the frontend first. It opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the app on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI. In the UI, the connection field is the bridge/server URL, so point it at the local bridge PC, a Cloudflare tunnel URL, or another PC on the network. From a different device, use the bridge PC's LAN IP or tunnel URL; do not use 127.0.0.1.
+That package includes the built web UI and the Python bridge, so users do not need to build the frontend first. The release launcher opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the package on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI. In the UI, the connection field is the bridge/server URL, so point it at the local bridge PC, a Cloudflare tunnel URL, or another PC on the network.
 
-The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while installed users go back to the latest GitHub release page to download the newer installer and rerun it.
+The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while release ZIPs open the latest GitHub release page to download the newer ZIP and rerun `scripts\run_release.bat`.
 
 ## What it does
 

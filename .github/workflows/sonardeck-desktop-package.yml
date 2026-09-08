@@ -1,4 +1,4 @@
-name: SonarDeck Desktop Package
+name: SonarDeck Desktop Shell Package
 
 on:
   workflow_dispatch:

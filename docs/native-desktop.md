@@ -29,6 +29,8 @@ This launcher:
 
 Use this only on a trusted LAN; the bridge is currently unauthenticated. On another device, open the bridge/server LAN URL printed by the launcher, not `127.0.0.1`.
 
+The GitHub desktop package workflow is still a shell package stage; it does not bundle the Python bridge yet, so the release ZIP remains the public all-in-one path until that packaging work lands.
+
 ## First-time Rust requirement
 
 Tauri needs Rust. Install it from:
