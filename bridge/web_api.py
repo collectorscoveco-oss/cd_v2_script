@@ -453,7 +453,7 @@ class SonarDeckApiState:
                         if command == "git pull --ff-only" and is_not_git_repository_error(combined):
                             message = (
                                 "This looks like an installed release, so the in-app updater cannot run git pull here. "
-                                f"Open {GITHUB_LATEST_RELEASE_URL}, download the newest installer, and run it again."
+                                f"Open {GITHUB_LATEST_RELEASE_URL}, download the newest ZIP, and run scripts/run_release.bat again."
                             )
                             self.append_log("Update fallback: git checkout missing, treating as installed release")
                             self.append_log(message)
@@ -468,7 +468,7 @@ class SonarDeckApiState:
 
             message = (
                 "This looks like an installed release, so the in-app updater cannot run git pull here. "
-                f"Open {GITHUB_LATEST_RELEASE_URL}, download the newest installer, and run it again."
+                f"Open {GITHUB_LATEST_RELEASE_URL}, download the newest ZIP, and run scripts/run_release.bat again."
             )
             self.append_log("Update fallback: installed release detected")
             self.append_log(message)

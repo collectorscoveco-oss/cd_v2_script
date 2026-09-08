@@ -4,13 +4,15 @@ A touch-friendly web Stream Deck for phone, tablet, and desktop.
 
 ## Download
 
-For the easiest public-use install, download the latest GitHub Release Windows installer and double-click the NSIS `.exe` setup file.
+For the easiest public-use install, download the latest GitHub Release ZIP, extract it, and run:
 
-Use the MSI only if you specifically need it for managed installation.
+```bat
+scripts\run_release.bat
+```
 
-After install, launch SonarDeck Studio from the Start menu. The installed app is the desktop shell UI, so point it at the bridge/server URL for your bridge PC, a Cloudflare tunnel, or another PC on the network.
+That package includes the built web UI and the Python bridge, so users do not need to build the frontend first. It opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the package on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI.
 
-The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while installed releases open the latest GitHub release page so you can download the newer installer and rerun it.
+The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while release ZIPs open the latest GitHub release page so you can download the newer ZIP and rerun `scripts\run_release.bat`.
 
 ## What it does
 
@@ -24,7 +26,7 @@ The Update button is split for both install types: dev checkouts keep using `git
 ## Requirements
 
 - Windows PC
-- Python 3.11+ for the release package
+- Python 3.11+ for the release ZIP
 - Node.js LTS only if you want to run the developer UI
 
 ## Developer run

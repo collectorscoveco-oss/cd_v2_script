@@ -49,8 +49,8 @@ class UpdateAppTests(TestCase):
             run.assert_not_called()
             self.assertEqual(result['mode'], 'release')
             self.assertEqual(result['update_url'], GITHUB_LATEST_RELEASE_URL)
-            self.assertIn('installer', result['message'])
-            self.assertIn('run it again', result['message'])
+            self.assertIn('ZIP', result['message'])
+            self.assertIn('run scripts/run_release.bat again', result['message'])
 
     def test_update_app_falls_back_when_git_pull_reports_not_a_repo(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -68,4 +68,4 @@ class UpdateAppTests(TestCase):
 
             self.assertEqual(result['mode'], 'release')
             self.assertEqual(result['update_url'], GITHUB_LATEST_RELEASE_URL)
-            self.assertIn('installed release', result['message'])
+            self.assertIn('ZIP', result['message'])

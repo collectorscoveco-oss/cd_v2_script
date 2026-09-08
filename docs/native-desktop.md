@@ -29,7 +29,7 @@ This launcher:
 
 Use this only on a trusted LAN; the bridge is currently unauthenticated. On another device, open the bridge/server LAN URL printed by the launcher, not `127.0.0.1`.
 
-The GitHub desktop package workflow is still a shell package stage; it does not bundle the Python bridge yet, so installed users still need a separate bridge/server running until that packaging work lands.
+The public release path is the ZIP plus `scripts\run_release.bat`. The Tauri shell package is still future work and is not the recommended public install path yet.
 
 ## First-time Rust requirement
 
@@ -77,7 +77,7 @@ It can be run manually from GitHub Actions or automatically by pushing a tag lik
 sonardeck-v0.1.0
 ```
 
-Public users should install the desktop app from the release `.exe` first; it is the double-click NSIS installer. Keep the MSI as a secondary artifact for environments that prefer it. The workflow builds both Windows artifacts and uploads them as workflow artifacts. On tags, it also publishes them to GitHub Releases.
+Public users should download the release ZIP, extract it, and run `scripts\run_release.bat`. That is the simple public install path today. The Tauri shell package remains a separate future path.
 
 ## Contributors
 

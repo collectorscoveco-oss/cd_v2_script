@@ -24,7 +24,7 @@ The virtual controller is the GUI test deck. It lets you click the same mapped e
 - live Sonar mixer bars for Game/Chat/Media/Mic
 - profile-colored pages
 - polished Stream Deck-style button cards with action category colors and no hover color changes
-- a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode; updates use `git pull --ff-only` in a git checkout, and installed releases open the latest GitHub release page so you can download the Windows installer and rerun it
+- a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode; updates use `git pull --ff-only` in a git checkout, and release ZIPs open the latest GitHub release page so you can download the ZIP and rerun `scripts\run_release.bat`
 - Edit Mapping Mode: click a deck button to select it for editing instead of firing it
 - editable button names and control mappings saved to `bridge\config.json`
 - an Action Type filter so the mapping list is not one giant dropdown
