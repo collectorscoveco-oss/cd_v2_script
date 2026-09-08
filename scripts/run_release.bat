@@ -32,7 +32,7 @@ if not exist "bridge\config.json" (
   copy "bridge\config.example.json" "bridge\config.json" >nul
 )
 
-for /f "usebackq delims=" %%I in (`powershell -NoProfile -Command "$ip = (Get-NetIPAddress -AddressFamily IPv4 ^| Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254*' -and $_.IPAddress -notlike '172.20.*' } ^| Select-Object -First 1 -ExpandProperty IPAddress); if (-not $ip) { $ip = '127.0.0.1' }; $ip"`) do set "LAN_IP=%%I"
+for /f "usebackq delims=" %%I in (`powershell -NoProfile -Command "$configs = Get-NetIPConfiguration ^| Where-Object { $_.IPv4Address -and $_.NetAdapter.Status -eq 'Up' -and $_.InterfaceAlias -notmatch 'vEthernet|VMware|Virtual|Loopback|Tailscale|Hyper-V' }; if ($configs.Count -gt 0) { $ip = $configs[0].IPv4Address.IPAddress } else { $ip = (Get-NetIPAddress -AddressFamily IPv4 ^| Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254*' } ^| Select-Object -First 1 -ExpandProperty IPAddress) }; if (-not $ip) { $ip = '127.0.0.1' }; $ip"`) do set "LAN_IP=%%I"
 if not defined LAN_IP set "LAN_IP=127.0.0.1"
 set "LAN_URL=http://%LAN_IP%:8766"
 
