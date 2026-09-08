@@ -1,6 +1,6 @@
 # SonarDeck Professional UI Roadmap
 
-The Virtual Controller is intentionally evolving from a test utility into a real companion app. The direction should feel closer to Linear/Raycast/SteelSeries than a raw Tkinter form.
+The Virtual Controller is intentionally evolving from a test utility into a real web-first controller. The direction should feel closer to Linear/Raycast/SteelSeries than a raw Tkinter form, and remote access should use LAN, Tailscale, or a Cloudflare tunnel rather than a separate companion app.
 
 ## Design direction
 

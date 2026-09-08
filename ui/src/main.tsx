@@ -443,7 +443,7 @@ function App() {
             <button className="ghost" onClick={saveApiBaseOverride}>Save bridge/server URL</button>
             <button className="ghost" onClick={clearApiBaseOverride}>Use current host</button>
           </div>
-          <div className="hintBox smallHint">Point this UI at the bridge/server URL. On a release ZIP, that is usually the LAN URL on port 8766, like http://192.168.1.50:8766. On a dev checkout it is usually the bridge port on 8765. The bridge can live on the gaming PC or on a separate server PC; this UI can run wherever you need it. If you are on the release ZIP, the update button will open the latest release page instead of trying to run git pull.</div>
+          <div className="hintBox smallHint">Point this UI at the host/bridge URL. On a release ZIP, that is usually the LAN URL on port 8766, like http://10.0.0.142:8766. On a dev checkout it is usually the bridge port on 8765. The host can live on the gaming PC or on a separate server PC. If your tablet/phone is on another Wi-Fi/VLAN/subnet, use the Remote Access guide with Tailscale or Cloudflare Tunnel. If you are on the release ZIP, the update button will open the latest release page instead of trying to run git pull.</div>
           <div className="hintBox smallHint">Trusted LAN only: the bridge is unauthenticated right now, so do not expose it beyond devices you control.</div>
         </div>
         </aside>
