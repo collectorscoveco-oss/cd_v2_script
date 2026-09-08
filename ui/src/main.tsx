@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Activity, Gamepad2, Maximize2, Minimize2, RefreshCcw, Save, Settings } from 'lucide-react'
 import { createRoot } from 'react-dom/client'
+import { QRCodeSVG } from 'qrcode.react'
 import { ActionIcon, ICON_CHOICES } from './actionIcons'
+import { API_OVERRIDE_STORAGE_KEY, getPreferredHostUrl, getQuickPickHostUrls, isConnectableHostUrl, saveHostHistory } from './connection-ux'
 import { resolveApiBase } from './api-base.js'
 import { summarizeUpdateFailure } from './update-failure.js'
 import './styles.css'
@@ -33,8 +35,6 @@ type State = {
   log: string[]
   lastAction?: { ok: boolean; event?: string; action?: string; message: string }
 }
-
-const API_OVERRIDE_STORAGE_KEY = 'sonardeck.apiBaseOverride'
 
 function createApiClient(base: string) {
   return async function api<T>(path: string, init?: RequestInit): Promise<T> {
@@ -140,14 +140,21 @@ function App() {
     }
   }
 
-  function saveApiBaseOverride() {
-    const clean = apiBaseDraft.trim()
-    setApiBaseOverride(clean)
-    if (clean) {
-      window.localStorage.setItem(API_OVERRIDE_STORAGE_KEY, clean)
-    } else {
-      window.localStorage.removeItem(API_OVERRIDE_STORAGE_KEY)
+  function chooseHostUrl(nextHostUrl: string) {
+    const clean = nextHostUrl.trim()
+    if (!isConnectableHostUrl(clean)) {
+      setError('Use a LAN IP or tunnel URL instead of localhost so other devices can connect.')
+      return
     }
+    setError('')
+    setApiBaseDraft(clean)
+    setApiBaseOverride(clean)
+    window.localStorage.setItem(API_OVERRIDE_STORAGE_KEY, clean)
+    saveHostHistory(window.localStorage, clean)
+  }
+
+  function saveApiBaseOverride() {
+    chooseHostUrl(apiBaseDraft)
   }
 
   function clearApiBaseOverride() {
@@ -176,6 +183,8 @@ function App() {
       return apiBase
     }
   }, [apiBase])
+  const preferredHostUrl = useMemo(() => getPreferredHostUrl(window.location, apiBaseOverride, window.localStorage), [apiBaseOverride])
+  const hostQuickPicks = useMemo(() => getQuickPickHostUrls(window.location, window.localStorage, apiBaseOverride), [apiBaseOverride])
   const connectionStatus = state ? 'Connected' : error ? 'Disconnected' : 'Connecting...'
   const actionGroups = useMemo(() => {
     const groups: Record<string, Action[]> = {}
@@ -432,6 +441,28 @@ function App() {
               <b>Bridge/server URL in use</b>
               <code>{apiBase}</code>
             </div>
+          </div>
+          <div className="qrCard">
+            <div className="qrFrame" aria-hidden="true">
+              {preferredHostUrl ? (
+                <QRCodeSVG value={preferredHostUrl} size={144} bgColor="transparent" fgColor="currentColor" />
+              ) : (
+                <div className="qrFallback">Open SonarDeck from a LAN URL first, then scan here.</div>
+              )}
+            </div>
+            <div className="qrText">
+              <b>Scan to connect</b>
+              <code>{preferredHostUrl || 'No shareable host URL yet'}</code>
+              <p>{preferredHostUrl ? 'Use this URL on the tablet or phone. It prefers your saved override first, then the current page origin, then the last saved host.' : 'Open the app from a LAN URL first so the QR can point at a device your tablet or phone can actually reach.'}</p>
+            </div>
+          </div>
+          <label>Saved host URLs</label>
+          <div className="quickPickRow">
+            {hostQuickPicks.map((url: string) => (
+              <button key={url} className="ghost quickPick" onClick={() => chooseHostUrl(url)} title={url}>
+                {url}
+              </button>
+            ))}
           </div>
           <label>Bridge/server URL override</label>
           <input
