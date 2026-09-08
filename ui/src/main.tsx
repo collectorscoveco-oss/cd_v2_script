@@ -3,6 +3,7 @@ import { Activity, Gamepad2, Maximize2, Minimize2, RefreshCcw, Save, Settings } 
 import { createRoot } from 'react-dom/client'
 import { ActionIcon, ICON_CHOICES } from './actionIcons'
 import { resolveApiBase } from './api-base.js'
+import { summarizeUpdateFailure } from './update-failure.js'
 import './styles.css'
 
 type DeckButton = {
@@ -378,7 +379,12 @@ function App() {
       }
       window.alert(payload.message)
     } catch (err) {
-      setError(String(err))
+      const failure = summarizeUpdateFailure(err, apiBase, window.location)
+      setError(failure.message)
+      if (failure.releaseUrl) {
+        const opened = window.open(failure.releaseUrl, '_blank', 'noopener,noreferrer')
+        if (!opened) window.location.href = failure.releaseUrl
+      }
     }
   }
 
