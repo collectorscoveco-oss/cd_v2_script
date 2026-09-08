@@ -6,7 +6,7 @@ def test_profile_switch_and_event_mapping():
         "default": "one",
         "switch_sound": {"enabled": False},
         "items": {
-            "one": {"name": "One", "events": {"BTN_01_PRESS": "a.one", "BTN_08_LONG": "profile.next"}},
+            "one": {"name": "One", "events": {"BTN_01_PRESS": "a.one", "BTN_10_LONG": "profile.next"}},
             "two": {"name": "Two", "events": {"BTN_01_PRESS": "a.two"}},
         },
     }

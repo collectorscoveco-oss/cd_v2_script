@@ -32,5 +32,5 @@ class ProfileManager:
         keys = list(self.items.keys())
         idx = keys.index(self.current_key)
         self.current_key = keys[(idx + 1) % len(keys)]
-        notify_profile_switch(self.cfg.get("switch_sound", {}), self.current_name)
+        notify_profile_switch(self.cfg.get("switch_sound", {}), self.current_name, self.current_key)
         return self.current_key

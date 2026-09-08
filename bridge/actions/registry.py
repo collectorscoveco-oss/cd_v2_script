@@ -55,7 +55,14 @@ class ActionRegistry:
             keys = self.ctx.config.get("actions", {}).get("hotkey", {}).get(key)
             if not keys:
                 raise KeyError(f"No hotkey configured for {key}")
-            hotkey_actions.press(keys)
+            focus_cfg = self.ctx.config.get("actions", {}).get("hotkey_focus", {}).get(key)
+            if focus_cfg is True:
+                focus_title = "Discord" if key == "discord_mute" else None
+            elif isinstance(focus_cfg, str) and focus_cfg.strip():
+                focus_title = focus_cfg.strip()
+            else:
+                focus_title = None
+            hotkey_actions.press(keys, focus_title=focus_title)
             return
         if action_name.startswith("sonar."):
             self._sonar(action_name)
@@ -89,6 +96,10 @@ class ActionRegistry:
             client.volume_down(parts[1]); return
         if len(parts) == 3 and parts[2] == "toggle_mute":
             client.toggle_mute(parts[1]); return
+        if len(parts) == 3 and parts[2] == "mute":
+            client.set_channel_mute(parts[1], True); return
+        if len(parts) == 3 and parts[2] == "unmute":
+            client.set_channel_mute(parts[1], False); return
         if action_name == "sonar.output.rotate":
             client.rotate_output(); return
         raise KeyError(f"Unknown Sonar action: {action_name}")

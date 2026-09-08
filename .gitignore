@@ -10,6 +10,10 @@ bridge/config.json
 bridge/logs/
 logs/
 
+# Modern UI local/build artifacts
+ui/node_modules/
+ui/dist/
+
 # OS/editor
 .DS_Store
 Thumbs.db

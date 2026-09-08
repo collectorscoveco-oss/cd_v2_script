@@ -1,94 +1,59 @@
-# 🎮 ConsoleDeck
+# SonarDeck Studio
 
-ConsoleDeck is a simple graphical interface that allows you to configure up to 9 buttons to launch websites or executable files with a click.  
-Ideal for creating your own customizable macro deck or personal launcher.
+A touch-friendly web Stream Deck for phone, tablet, and desktop.
 
----
+## Start here
 
-## ✅ Requirements
+Read the short guide first:
 
-- A Windows PC
-- Python 3.11 or higher
-- Internet connection (only for the initial setup)
+- [Quick Start](docs/quick-start.md)
 
----
+## What you need to know
 
-## 🐍 Step 1 – Install Python
+- **Host PC** = the Windows PC that runs `scripts\run_release.bat`
+- **Control device** = phone, tablet, or second PC that opens the bridge URL
+- If you only have one PC, use that same PC for both
 
-1. Go to 👉 [https://www.python.org/downloads/](https://www.python.org/downloads/)
-2. Download the latest version of Python 3
-3. During installation, **check the box** ✅ **"Add Python to PATH"**
-4. Click **Install Now**
+## Public download
 
----
+1. Download the latest GitHub Release ZIP.
+2. Extract it on the host PC.
+3. Run `scripts\run_release.bat`.
+4. Open the URL the launcher prints.
+5. If the tablet/phone is on another Wi-Fi/VLAN/subnet, use a tunnel or VPN instead of the raw LAN IP.
 
-## 📦 Step 2 – Install required libraries
+For the easiest cross-network setup, see [Remote Access](docs/remote-access.md).
 
-1. Open the Start menu
-2. Type `cmd` and press Enter
-3. In the terminal window, paste the following command:
+The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while release ZIPs open the latest GitHub release page so you can download the newer ZIP and rerun `scripts\run_release.bat`.
 
-```bash
-pip install pygame pyperclip pyserial
+## What it does
+
+- Big touch-friendly deck buttons
+- Editor mode for remapping buttons
+- Deck mode for button-only fullscreen use
+- PC bridge for local control
+- LAN-friendly connection settings
+- Profiles/pages and hotkeys
+
+## Developer run
+
+If you are working from the repo instead of the release ZIP:
+
+```bat
+scripts\run_modern_ui.bat
 ```
 
-If you get an error like `'pip' is not recognized`, try restarting your PC.
+That starts the Python bridge and the Vite dev UI.
 
----
+## Project layout
 
-## ▶️ Step 3 – Run ConsoleDeck
+- `bridge/` — Python bridge and action handling
+- `ui/` — React/TypeScript front end
+- `scripts/` — Windows launchers
+- `docs/` — quick start and reference notes
 
-1. Download all project files into a folder (e.g., Desktop)
-2. Open that folder in the terminal (`cmd`)
-3. Start the app with this command:
+## Notes
 
-```bash
-python main.py --gui
-```
-
-If everything is set up correctly, a graphical window will open.
-
----
-
-## ⚙️ Features
-
-- Click one of the 9 buttons to assign an action
-- Choose between:
-  - a website URL (e.g. `https://youtube.com`)
-  - a `.exe` file on your PC
-  - or no action
-- Modify the fields directly inside the app
-- Use the "Browse" button to select `.exe` files
-- Save your changes only when you're ready
-- Supports volume control, mute toggle, and media play/pause via serial
-
-Settings are stored in a local file called `config.json`.
-
----
-
-## ❓ Troubleshooting
-
-**🟡 Nothing happens when I click a button?**  
-Make sure you launched the app using: `python main.py --gui`
-
-**🔗 Can I use YouTube or other links?**  
-Yes, any valid `https://` link will work.
-
-**🧩 Can I assign programs like `.exe` files?**  
-Yes! Use the “Browse” button to pick an executable file.
-
-**💾 It says 'pip' is not recognized**  
-Restart your computer or reinstall Python and ensure "Add Python to PATH" is selected during setup.
-
----
-
-## 🧼 How to uninstall
-
-- You can delete the project folder at any time
-- To uninstall Python, go to **Apps & Features** in Windows
-
----
-
-## 📬 Need help?
-
-If you get stuck or the app doesn’t behave as expected, feel free to contact the developer or open an issue on the project repository.
+- The release ZIP is the recommended public download.
+- The bridge is trusted-LAN only right now; do not expose it publicly.
+- If you change mappings in the editor, use the save buttons so changes persist to the config file.

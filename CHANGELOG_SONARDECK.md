@@ -8,4 +8,49 @@
 - Added customizable profile switch sounds: beep, sound file, or terminal bell.
 - Added modular action registry for Windows media, app launching, hotkeys, and Sonar.
 - Added Sonar probe helper for live Windows testing.
+- Added Sonar control parser/apply test helper for safe volume testing.
+- Updated Sonar API discovery to use the Sonar subapp `webServerAddress` from SteelSeries Engine `/subApps`.
+- Updated volume/mute extraction for nested `/volumeSettings/classic` and streamer shapes.
 - Added Windows setup/run scripts and V1 docs.
+- Added `scripts/simulate_event.bat` for testing mapped actions without Arduino hardware.
+- Added `scripts/run_virtual_deck.bat` and `bridge.virtual_deck`, a GUI virtual controller for testing the final button/profile mappings before Arduino hardware arrives.
+- Expanded the virtual controller with live Sonar mixer bars, profile-colored pages, keyboard shortcuts, a button/profile editor, and profile-switch sound controls/test buttons.
+- Reworked the virtual deck buttons into polished Stream Deck-style cards with action category colors and an Edit Mapping Mode where clicking a deck button selects it for editing.
+- Smoothed virtual deck card hover behavior so cards no longer flash/flicker when moving over nested text.
+- Added a top toolbar with Check / Install Updates, Refresh Sonar, Test Profile Sound, Open Config Folder, and Edit Mapping Mode.
+- Updated the toolbar update flow so it can install available GitHub updates with `git pull --ff-only`, block safely on local project changes, and offer to restart the Virtual Controller.
+- Added an Action Type filter for cleaner Sonar/Windows/Media/App/Website/Hotkey/Profile mapping selection.
+- Added GUI builders for custom website buttons and custom hotkey buttons.
+- Improved the custom app builder with a clearer Browse for `.exe` button plus a Find `.exe` by Name helper that searches common Windows app folders and lets the user pick the correct match.
+- Added profile/page tools for creating, duplicating, renaming pages, plus config backup/restore.
+- Removed deck-card hover event bindings and avoided full deck redraws after normal button clicks to eliminate click-time Tkinter flicker/glitch.
+- Added editable button names/labels saved per profile/control, with dedicated Save Name Only and Clear Custom Name buttons.
+- Added a GUI app picker so custom apps can be selected and mapped without editing JSON.
+- Reduced duplicate default short-press profile-switch mappings; long-press Button 8 remains the dedicated page switch.
+- Added more default profiles: Gaming, Streaming, Music, and Desktop.
+- Expanded profile-switch audio modes: off, beep, profile-specific beeps, terminal bell, Windows system sound, WAV file, profile-specific WAV files, and Windows voice.
+- Updated the virtual controller so button/encoder labels refresh when the active profile/page changes.
+- Updated the virtual controller to refresh its Sonar status immediately after any action, plus a delayed second refresh for GG/Sonar API lag.
+- Added `scripts/reset_config_to_default.bat` and `docs/plug-and-play.md` so the Windows setup path is closer to plug-and-play.
+- Updated `scripts/setup_windows.bat` to create `bridge/config.json` automatically when missing.
+- Changed the default V1 page-switch model so `BTN_10_PRESS` is media play/pause and `BTN_10_LONG` is profile/page switch.
+- Added `docs/ui-tech-direction.md` to capture the planned move from raw Tkinter toward a more professional Tauri/React UI with the Python bridge kept for control logic.
+- Added the first modern UI prototype: `bridge.web_api`, `ui/` Vite React/TypeScript app, `scripts/setup_modern_ui.bat`, `scripts/run_modern_ui.bat`, and `docs/modern-ui.md`.
+- Updated the software/config/firmware direction for a 10-button layout: `BTN_10_PRESS` is dedicated play/pause, `BTN_10_LONG` switches pages, and the modern UI supports hold-to-switch on the wide Button 10 card.
+- Added `docs/ten-button-layout.md` to capture the reference-image-inspired 3x3 grid + knob + wide play/pause button direction.
+- Added background launch/stop scripts for the modern UI: `scripts/run_modern_ui_background.bat`, `scripts/run_modern_ui_background.vbs`, `scripts/stop_modern_ui.bat`, plus `docs/background-and-tray.md`.
+- Added manual button remapping to the modern UI Mapping tab and a `/api/mapping` endpoint so broken/misassigned buttons can be fixed from the GUI.
+- Changed Spotify defaults/migration to use the `spotify:` protocol action (`app.open.spotify`) instead of relying on `spotify.exe` being on PATH.
+- Added manual `.exe` app action creation to the modern UI and `/api/app-action`, so users can paste a full app path and assign it to the selected deck button without editing JSON.
+- Improved Windows app launching so pasted full `.exe` paths like `C:\Users\crsma\AppData\Roaming\Spotify\Spotify.exe` launch directly instead of being handed to `cmd.exe` unquoted.
+- Simplified the modern UI Mapping tab into Button Setup modes, made App/Website targets editable, and categorized protocol shortcuts like `spotify:` as App buttons instead of Website buttons.
+- Added a brand/logo icon system for the modern deck cards and action list, including Spotify, Discord, SteelSeries/Sonar, YouTube, OBS, Bambu, Twitch, Steam, Epic, PlayStation, NVIDIA, GitHub, Chrome, VLC, Plex, Elgato, and generic future-action fallbacks.
+- Added a modern UI Check / Install Updates button and made the launchers run `npm install` before starting so new UI dependencies are installed after `git pull`.
+- Pinned Vite to strict port `5173`, made the visible launcher clear old listeners before starting, and expanded auto-icon matching to use configured action targets and pasted `.exe` filenames.
+- Added a manual Button Icon picker in Button Setup, storing per-page/per-button icon overrides with Auto mode for inferred icons.
+- Fixed the modern UI update button to run through the command shell from the repo root, avoiding `[WinError 2]` when direct `git`/`npm` process lookup fails on Windows.
+- Added an OrcaSlicer icon choice and auto-detection for `OrcaSlicer.exe` / Orca labels.
+- Fixed Sonar mic mute toggles so they can unmute when GG does not expose mute state, added explicit mic mute/unmute actions, and expanded hotkey key-code support for Discord/OBS shortcuts.
+- Changed the Discord mute hotkey default from `Ctrl+Shift+M`/`F13` to `Ctrl+Alt+Shift+M`, added UI hotkey creation/editing, and kept per-button color overrides in the modern Button Setup UI.
+- Made the Discord Mute action focus the visible Discord window before sending its hotkey, avoiding Chrome consuming the shortcut when the virtual deck is clicked from the browser.
+- Started Option 1 native desktop migration with a Tauri shell, `scripts/run_desktop_app.bat`, GitHub Actions Windows package/release workflow, `docs/native-desktop.md`, and `CONTRIBUTORS.md`. Option 2 (C#/.NET) is documented as fallback.

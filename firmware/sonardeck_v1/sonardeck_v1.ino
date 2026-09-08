@@ -5,7 +5,7 @@
   - No OLED/display required.
   - Arduino only reports hardware events over USB serial.
   - PC bridge decides what each event does.
-  - Button 8 supports short press vs long press for page/profile switching.
+  - Button 10 supports short press vs long press for play/pause + page/profile switching.
 
   Wiring:
   - Buttons are wired from Arduino pin to GND.
@@ -13,8 +13,8 @@
   - Rotary encoder uses CLK, DT, SW.
 
   Serial events:
-  - BTN_01_PRESS ... BTN_09_PRESS
-  - BTN_08_LONG
+  - BTN_01_PRESS ... BTN_10_PRESS
+  - BTN_10_LONG
   - ENC_01_CW
   - ENC_01_CCW
   - ENC_01_PRESS
@@ -26,7 +26,7 @@
 
 // Keep this order stable: physical/logical button number -> pin.
 // Based on the original Console Deck V2 sketch and the provided schematic.
-const byte BUTTON_COUNT = 9;
+const byte BUTTON_COUNT = 10;
 const byte buttonPins[BUTTON_COUNT] = {
   2,   // BTN_01 - schematic SW11
   A1,  // BTN_02 - schematic SW8
@@ -35,8 +35,9 @@ const byte buttonPins[BUTTON_COUNT] = {
   10,  // BTN_05 - schematic SW6
   9,   // BTN_06 - schematic SW7
   12,  // BTN_07 - schematic SW10 (uses D12; original sketch used D2 here)
-  6,   // BTN_08 - schematic SW2; long press switches profile/page
-  7    // BTN_09 - schematic SW3
+  6,   // BTN_08 - schematic SW2
+  7,   // BTN_09 - schematic SW3
+  A2   // BTN_10 - dedicated play/pause; long press switches profile/page (adjust pin if your final wiring differs)
 };
 
 const unsigned long DEBOUNCE_MS = 35;
@@ -108,9 +109,9 @@ void loopButtons() {
         byte logicalButton = i + 1;
         unsigned long heldMs = now - pressedAtMs[i];
 
-        // Button 8 is the profile/page button: short press can still be mapped,
-        // long press sends BTN_08_LONG and suppresses BTN_08_PRESS.
-        if (logicalButton == 8 && heldMs >= LONG_PRESS_MS) {
+        // Button 10 is the play/pause button: short press maps to play/pause,
+        // long press sends BTN_10_LONG and suppresses BTN_10_PRESS.
+        if (logicalButton == 10 && heldMs >= LONG_PRESS_MS) {
           if (!longSent[i]) printButtonEvent(logicalButton, "LONG");
         } else if (!longSent[i]) {
           printButtonEvent(logicalButton, "PRESS");
@@ -119,8 +120,8 @@ void loopButtons() {
     }
 
     // Send long-press once while still held so the bridge can switch immediately.
-    if (stableState[i] == LOW && (i + 1) == 8 && !longSent[i] && (now - pressedAtMs[i]) >= LONG_PRESS_MS) {
-      printButtonEvent(8, "LONG");
+    if (stableState[i] == LOW && (i + 1) == 10 && !longSent[i] && (now - pressedAtMs[i]) >= LONG_PRESS_MS) {
+      printButtonEvent(10, "LONG");
       longSent[i] = true;
     }
   }
