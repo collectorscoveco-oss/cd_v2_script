@@ -2,15 +2,24 @@
 
 A touch-friendly web Stream Deck for phone, tablet, and desktop.
 
-## Download
+## Start here
 
-For the easiest public-use install, download the latest GitHub Release ZIP, extract it, and run:
+Read the short guide first:
 
-```bat
-scripts\run_release.bat
-```
+- [Quick Start](docs/quick-start.md)
 
-That package includes the built web UI and the Python bridge, so users do not need to build the frontend first. It opens the LAN URL on port 8766 and may ask Windows Firewall for permission the first time. Run the package on the bridge/server PC; a separate gaming PC, tablet, or phone can connect to that bridge URL from the UI.
+## What you need to know
+
+- **Bridge/server PC** = the Windows PC that runs `scripts\run_release.bat`
+- **Control device** = phone, tablet, or second PC that opens the bridge URL
+- If you only have one PC, use that same PC for both
+
+## Public download
+
+1. Download the latest GitHub Release ZIP.
+2. Extract it on the bridge/server PC.
+3. Run `scripts\run_release.bat`.
+4. Use the local URL on that PC, or the LAN/tunnel URL on another device.
 
 The Update button is split for both install types: dev checkouts keep using `git pull --ff-only` plus `npm install --prefix ui`, while release ZIPs open the latest GitHub release page so you can download the newer ZIP and rerun `scripts\run_release.bat`.
 
@@ -19,19 +28,13 @@ The Update button is split for both install types: dev checkouts keep using `git
 - Big touch-friendly deck buttons
 - Editor mode for remapping buttons
 - Deck mode for button-only fullscreen use
-- PC companion bridge for local control
+- PC bridge for local control
 - LAN-friendly connection settings
 - Profiles/pages and hotkeys
 
-## Requirements
-
-- Windows PC
-- Python 3.11+ for the release ZIP
-- Node.js LTS only if you want to run the developer UI
-
 ## Developer run
 
-If you are working from the repo instead of the installed desktop app:
+If you are working from the repo instead of the release ZIP:
 
 ```bat
 scripts\run_modern_ui.bat
@@ -44,10 +47,10 @@ That starts the Python bridge and the Vite dev UI.
 - `bridge/` — Python bridge and action handling
 - `ui/` — React/TypeScript front end
 - `scripts/` — Windows launchers
-- `docs/` — notes and UI direction
+- `docs/` — quick start and reference notes
 
 ## Notes
 
-- The release package is the recommended public download.
+- The release ZIP is the recommended public download.
 - The bridge is trusted-LAN only right now; do not expose it publicly.
 - If you change mappings in the editor, use the save buttons so changes persist to the config file.

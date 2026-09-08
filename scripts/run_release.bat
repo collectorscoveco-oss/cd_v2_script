@@ -8,7 +8,10 @@ echo SonarDeck Studio Release
 echo Project: %cd%
 echo ========================================
 echo.
-
+echo 1) Run this on the bridge/server PC.
+echo 2) Keep this window open.
+echo 3) On another device, use the LAN/tunnel URL printed below.
+echo.
 set "PYTHON_CMD="
 where py >nul 2>nul
 if not errorlevel 1 set "PYTHON_CMD=py -3"
